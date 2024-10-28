@@ -1,6 +1,6 @@
 <template>
    <aside
-      class="bg-gray-50 fixed top-0 h-dvh w-[20%] min-w-[288px] lg:block flex flex-col"
+      class="bg-[#fafafa] fixed top-0 h-dvh w-[20%] min-w-[288px] lg:block flex flex-col"
    >
       <div
          class="bg-inherit fixed w-[20%] min-w-[288px] p-6 flex gap-x-[10px] items-center"
@@ -30,7 +30,9 @@
                         selectedGroupIndex === groupIndex &&
                         selectedItemIndex === itemIndex,
                   }"
-                  @click="setSelected(groupIndex, itemIndex)"
+                  @click="
+                     setSelected(groupIndex, itemIndex), changeView(item.view)
+                  "
                >
                   <component
                      :is="item.icon"
@@ -61,6 +63,7 @@
       Settings,
    } from 'lucide-vue-next';
    import { ref } from 'vue';
+   import { useRouter, viewDepthKey } from 'vue-router';
 
    const menuItems = [
       {
@@ -69,34 +72,42 @@
             {
                icon: Pill,
                text: 'Thuốc',
+               view: 'medicine-view',
             },
             {
                icon: Tablets,
                text: 'Loại thuốc',
+               view: 'medicine-categories-view',
             },
             {
                icon: Store,
                text: 'Nhà cung cấp',
+               view: 'suppliers-view',
             },
             {
                icon: Factory,
                text: 'Hãng sản xuất',
+               view: 'manufactures-view',
             },
             {
                icon: UsersRound,
                text: 'Khách hàng',
+               view: 'customers-view',
             },
             {
                icon: Contact,
                text: 'Nhân viên',
+               view: 'employees-view',
             },
             {
                icon: FileInput,
                text: 'Phiếu nhập',
+               view: 'received-notes-view',
             },
             {
                icon: FileOutput,
                text: 'Phiếu xuất',
+               view: 'delivey-notes-view',
             },
          ],
       },
@@ -106,14 +117,17 @@
             {
                icon: ChartNoAxesCombined,
                text: 'Thống kê',
+               view: 'statistics-view',
             },
             {
                icon: HardDriveDownload,
                text: 'Nhập dữ liệu',
+               view: 'import-data-view',
             },
             {
                icon: HardDriveUpload,
                text: 'Xuất dữ liệu',
+               view: 'export-data-view',
             },
          ],
       },
@@ -123,10 +137,12 @@
             {
                icon: UserRoundCheck,
                text: 'Tài khoản',
+               view: 'account-view',
             },
             {
                icon: Settings,
                text: 'Cài đặt',
+               view: 'settings-view',
             },
          ],
       },
@@ -137,6 +153,13 @@
    const setSelected = (groupIndex: number, itemIndex: number) => {
       selectedGroupIndex.value = groupIndex;
       selectedItemIndex.value = itemIndex;
+   };
+
+   const router = useRouter();
+   const changeView = (viewName: string) => {
+      router.push({
+         name: viewName,
+      });
    };
 </script>
 
