@@ -26,8 +26,13 @@
          </SheetFooter>
       </SheetContent>
    </Sheet>
-   <SideNavigationMenu></SideNavigationMenu>
-   <!-- <Medicine></Medicine> -->
+   <SideNavigationMenu ref="sideNavigation"></SideNavigationMenu>
+   <main
+      class="ml-[var(--customMarginLeft)] h-dvh bg-white"
+      :style="`--customMarginLeft:${marginLeftForMainTag}px`"
+   >
+      <router-view></router-view>
+   </main>
 </template>
 
 <script setup lang="ts">
@@ -43,7 +48,18 @@
       SheetTrigger,
    } from '@/components/ui/sheet';
    import SideNavigationMenu from '@/components/SideNavigationMenu.vue';
-   import Medicine from '@/views/Medicine.vue';
+   import { onMounted, ref, useTemplateRef } from 'vue';
+   const sideNavigationRef = useTemplateRef('sideNavigation');
+   const marginLeftForMainTag = ref(0);
+
+   onMounted(() => {
+      marginLeftForMainTag.value =
+         sideNavigationRef.value?.$el?.offsetWidth || 0;
+      window.addEventListener('resize', () => {
+         marginLeftForMainTag.value =
+            sideNavigationRef.value?.$el?.offsetWidth || 0;
+      });
+   });
 </script>
 
 <style scoped></style>
