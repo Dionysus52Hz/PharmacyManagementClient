@@ -26,9 +26,16 @@
          </SheetFooter>
       </SheetContent>
    </Sheet>
+
    <SideNavigationMenu ref="sideNavigation"></SideNavigationMenu>
+
+   <AppBar
+      class="ml-[var(--customMarginLeft)] bg-white"
+      :style="`--customMarginLeft:${marginLeftForMainTag}px`"
+   ></AppBar>
+
    <main
-      class="ml-[var(--customMarginLeft)] h-dvh bg-white"
+      class="ml-[var(--customMarginLeft)] h-dvh bg-white pr-6 pt-[80px]"
       :style="`--customMarginLeft:${marginLeftForMainTag}px`"
    >
       <router-view></router-view>
@@ -48,7 +55,9 @@
       SheetTrigger,
    } from '@/components/ui/sheet';
    import SideNavigationMenu from '@/components/SideNavigationMenu.vue';
+   import AppBar from '@/components/AppBar.vue';
    import { onMounted, ref, useTemplateRef } from 'vue';
+
    const sideNavigationRef = useTemplateRef('sideNavigation');
    const marginLeftForMainTag = ref(0);
 
