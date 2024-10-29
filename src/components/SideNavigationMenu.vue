@@ -15,6 +15,7 @@
             v-for="(group, groupIndex) in MENU_ITEMS"
          >
             <p
+               :key="groupIndex"
                class="menu-items-group-title uppercase font-bold text-xs px-2 py-1"
             >
                {{ group.title }}
@@ -27,12 +28,11 @@
                   :key="itemIndex"
                   :class="{
                      'text-black font-semibold bg-gray-200':
-                        selectedGroupIndex === groupIndex &&
-                        selectedItemIndex === itemIndex,
+                        group.title === selectedMenuState.menuGroup &&
+                        item.text === selectedMenuState.menuItem,
                   }"
                   @click="
-                     setSelected(groupIndex, itemIndex),
-                        changeView(item.view),
+                     changeView(item.view),
                         navigationMenuStore.setSelectedMenuState({
                            menuGroup: group.title,
                            menuItem: item.text,
@@ -52,18 +52,15 @@
 </template>
 
 <script setup lang="ts">
-   import { ref } from 'vue';
+   import { computed } from 'vue';
    import { useRouter } from 'vue-router';
    import { MENU_ITEMS } from '@/utils/constants';
    import { useNavigationMenuStore } from '@/stores/navigationMenuStore';
 
    const navigationMenuStore = useNavigationMenuStore();
-   const selectedGroupIndex = ref(-1);
-   const selectedItemIndex = ref(-1);
-   const setSelected = (groupIndex: number, itemIndex: number) => {
-      selectedGroupIndex.value = groupIndex;
-      selectedItemIndex.value = itemIndex;
-   };
+   const selectedMenuState = computed(() => {
+      return navigationMenuStore.selectedMenuState;
+   });
 
    const router = useRouter();
    const changeView = (viewName: string) => {
