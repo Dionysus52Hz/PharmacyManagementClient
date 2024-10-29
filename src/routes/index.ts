@@ -1,4 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router';
+import Home from '@/views/Home.vue';
+import AboutUs from '@/views/AboutUs.vue';
+import Contacts from '@/views/Contacts.vue';
 import Medicine from '@/views/Medicine.vue';
 import MedicineCategories from '@/views/MedicineCategories.vue';
 import Suppliers from '@/views/Suppliers.vue';
@@ -14,6 +17,21 @@ import Account from '@/views/Account.vue';
 import Settings from '@/views/Settings.vue';
 
 const routes = [
+   {
+      path: '/',
+      component: Home,
+      name: 'home-view',
+   },
+   {
+      path: '/about-us',
+      component: AboutUs,
+      name: 'about-us-view',
+   },
+   {
+      path: '/contacts',
+      component: Contacts,
+      name: 'contacts-view',
+   },
    {
       path: '/medicine',
       component: Medicine,

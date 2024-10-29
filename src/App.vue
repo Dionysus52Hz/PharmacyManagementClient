@@ -27,9 +27,15 @@
       </SheetContent>
    </Sheet>
 
-   <SideNavigationMenu ref="sideNavigation"></SideNavigationMenu>
+   <Header></Header>
+
+   <SideNavigationMenu
+      ref="sideNavigation"
+      v-if="isLoggedIn"
+   ></SideNavigationMenu>
 
    <AppBar
+      v-if="isLoggedIn"
       class="ml-[var(--customMarginLeft)] bg-white"
       :style="`--customMarginLeft:${marginLeftForMainTag}px`"
    ></AppBar>
@@ -56,10 +62,20 @@
    } from '@/components/ui/sheet';
    import SideNavigationMenu from '@/components/SideNavigationMenu.vue';
    import AppBar from '@/components/AppBar.vue';
-   import { onMounted, ref, useTemplateRef } from 'vue';
+   import Header from '@/components/Header.vue';
+   import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
+   import { useRoute } from 'vue-router';
 
    const sideNavigationRef = useTemplateRef('sideNavigation');
    const marginLeftForMainTag = ref(0);
+   const route = useRoute();
+   const isLoggedIn = computed(() => {
+      return (
+         route.name !== 'home-view' &&
+         route.name !== 'about-us-view' &&
+         route.name !== 'contacts-view'
+      );
+   });
 
    onMounted(() => {
       marginLeftForMainTag.value =
@@ -68,6 +84,23 @@
          marginLeftForMainTag.value =
             sideNavigationRef.value?.$el?.offsetWidth || 0;
       });
+   });
+
+   watch(route, (newRoute) => {
+      if (
+         newRoute.name === 'home-view' ||
+         newRoute.name === 'about-us-view' ||
+         newRoute.name === 'contacts-view'
+      ) {
+         marginLeftForMainTag.value = 0;
+      } else {
+         marginLeftForMainTag.value =
+            sideNavigationRef.value?.$el?.offsetWidth || 0;
+         window.addEventListener('resize', () => {
+            marginLeftForMainTag.value =
+               sideNavigationRef.value?.$el?.offsetWidth || 0;
+         });
+      }
    });
 </script>
 
