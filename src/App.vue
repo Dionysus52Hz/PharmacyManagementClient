@@ -41,7 +41,7 @@
    ></AppBar>
 
    <main
-      class="ml-[var(--customMarginLeft)] h-dvh bg-white pr-6 pt-[80px]"
+      class="ml-[var(--customMarginLeft)] h-dvh bg-white pt-[80px]"
       :style="`--customMarginLeft:${marginLeftForMainTag}px`"
    >
       <router-view></router-view>
@@ -73,7 +73,9 @@
       return (
          route.name !== 'home-view' &&
          route.name !== 'about-us-view' &&
-         route.name !== 'contacts-view'
+         route.name !== 'contacts-view' &&
+         route.name !== 'signup-view' &&
+         route.name !== 'login-view'
       );
    });
 
@@ -90,7 +92,9 @@
       if (
          newRoute.name === 'home-view' ||
          newRoute.name === 'about-us-view' ||
-         newRoute.name === 'contacts-view'
+         newRoute.name === 'contacts-view' ||
+         newRoute.name === 'signup-view' ||
+         newRoute.name === 'login-view'
       ) {
          marginLeftForMainTag.value = 0;
       } else {

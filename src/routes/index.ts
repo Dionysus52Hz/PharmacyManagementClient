@@ -2,6 +2,8 @@ import { createWebHistory, createRouter } from 'vue-router';
 import Home from '@/views/Home.vue';
 import AboutUs from '@/views/AboutUs.vue';
 import Contacts from '@/views/Contacts.vue';
+import SignUp from '@/views/SignUp.vue';
+import Login from '@/views/Login.vue';
 import Medicine from '@/views/Medicine.vue';
 import MedicineCategories from '@/views/MedicineCategories.vue';
 import Suppliers from '@/views/Suppliers.vue';
@@ -31,6 +33,18 @@ const routes = [
       path: '/contacts',
       component: Contacts,
       name: 'contacts-view',
+   },
+
+   {
+      path: '/login',
+      component: Login,
+      name: 'login-view',
+   },
+
+   {
+      path: '/signup',
+      component: SignUp,
+      name: 'signup-view',
    },
    {
       path: '/medicine',
