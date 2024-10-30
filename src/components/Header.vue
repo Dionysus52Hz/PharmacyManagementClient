@@ -29,18 +29,30 @@
       </NavigationMenu>
 
       <div class="authentication-container flex items-center gap-x-2.5">
-         <Button
-            variant="ghost"
-            class="gap-x-2 font-semibold"
+         <RouterLink
+            :to="{
+               name: 'signup-view',
+            }"
          >
-            <KeyRound class="h-5 w-5" />
-            Đăng ký
-         </Button>
+            <Button
+               variant="ghost"
+               class="gap-x-2 font-semibold"
+            >
+               <KeyRound class="h-5 w-5" />
+               Đăng ký
+            </Button>
+         </RouterLink>
 
-         <Button class="gap-x-2 font-semibold">
-            <LogIn class="h-5 w-5" />
-            Đăng nhập
-         </Button>
+         <RouterLink
+            :to="{
+               name: 'login-view',
+            }"
+         >
+            <Button class="gap-x-2 font-semibold">
+               <LogIn class="h-5 w-5" />
+               Đăng nhập
+            </Button>
+         </RouterLink>
       </div>
    </nav>
 </template>
