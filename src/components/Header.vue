@@ -8,7 +8,7 @@
          <p class="app-name text-lg font-semibold">App Name</p>
       </div>
 
-      <NavigationMenu>
+      <NavigationMenu class="place-self-center">
          <NavigationMenuList class="gap-x-2.5">
             <NavigationMenuItem v-for="item in navigationMenuItems">
                <RouterLink
@@ -28,7 +28,10 @@
          </NavigationMenuList>
       </NavigationMenu>
 
-      <div class="authentication-container flex items-center gap-x-2.5">
+      <div
+         class="authentication-container flex items-center gap-x-2.5"
+         :class="showAuthenticationButtons ? '' : 'invisible'"
+      >
          <RouterLink
             :to="{
                name: 'signup-view',
@@ -67,6 +70,19 @@
    } from '@/components/ui/navigation-menu';
    import { KeyRound, LogIn } from 'lucide-vue-next';
    import { Button } from '@/components/ui/button';
+   import { useCurrentPageStore } from '@/stores/currentPageStore';
+   import { computed, ref } from 'vue';
+
+   const currentPageStore = useCurrentPageStore();
+   const currentPage = computed(() => {
+      return currentPageStore.currentPage;
+   });
+   const showAuthenticationButtons = computed(() => {
+      return (
+         currentPage.value !== 'login-view' &&
+         currentPage.value !== 'signup-view'
+      );
+   });
 
    const navigationMenuItems: { title: string; view: string }[] = [
       {
@@ -83,3 +99,10 @@
       },
    ];
 </script>
+
+<style scoped>
+   /* .authentication-container.hidden {
+      opacity: 0;
+      visibility: hidden;
+   } */
+</style>

@@ -65,6 +65,7 @@
    import Header from '@/components/Header.vue';
    import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
    import { useRoute } from 'vue-router';
+   import { useCurrentPageStore } from './stores/currentPageStore';
 
    const sideNavigationRef = useTemplateRef('sideNavigation');
    const marginLeftForMainTag = ref(0);
@@ -88,7 +89,11 @@
       });
    });
 
+   const currentPageStore = useCurrentPageStore();
    watch(route, (newRoute) => {
+      if (newRoute.name) {
+         currentPageStore.setCurrentPage(newRoute.name as string);
+      }
       if (
          newRoute.name === 'home-view' ||
          newRoute.name === 'about-us-view' ||
