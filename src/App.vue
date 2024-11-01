@@ -76,7 +76,8 @@
          route.name !== 'about-us-view' &&
          route.name !== 'contacts-view' &&
          route.name !== 'signup-view' &&
-         route.name !== 'login-view'
+         route.name !== 'login-view' &&
+         route.name !== 'reset-password-view'
       );
    });
 
@@ -99,7 +100,8 @@
          newRoute.name === 'about-us-view' ||
          newRoute.name === 'contacts-view' ||
          newRoute.name === 'signup-view' ||
-         newRoute.name === 'login-view'
+         newRoute.name === 'login-view' ||
+         newRoute.name === 'reset-password-view'
       ) {
          marginLeftForMainTag.value = 0;
       } else {
