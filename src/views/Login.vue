@@ -60,6 +60,19 @@
                      <FormMessage />
                   </FormItem>
                </FormField>
+
+               <div class="forgot-password flex justify-end text-sm">
+                  <RouterLink
+                     :to="{
+                        name: 'reset-password-view',
+                     }"
+                  >
+                     <span class="font-semibold"
+                        >Quên mật khẩu?</span
+                     ></RouterLink
+                  >
+               </div>
+
                <Button
                   type="submit"
                   class="w-full"
