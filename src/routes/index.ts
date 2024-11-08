@@ -8,7 +8,7 @@ import ResetPassword from '@/views/ResetPassword.vue';
 import Medicine from '@/views/Medicine.vue';
 import MedicineCategories from '@/views/MedicineCategories.vue';
 import Suppliers from '@/views/Suppliers.vue';
-import Manufactures from '@/views/Manufactures.vue';
+import Manufacturers from '@/views/Manufacturers.vue';
 import Customers from '@/views/Customers.vue';
 import Employees from '@/views/Employees.vue';
 import ReceivedNotes from '@/views/ReceivedNotes.vue';
@@ -68,8 +68,8 @@ const routes = [
    },
    {
       path: '/manufactures',
-      component: Manufactures,
-      name: 'manufactures-view',
+      component: Manufacturers,
+      name: 'manufacturers-view',
    },
    {
       path: '/customers',
