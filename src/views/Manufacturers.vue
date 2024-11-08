@@ -102,7 +102,7 @@
    import { ref, onMounted } from 'vue';
    import { columns } from '@/components/manufacturers/columns';
    import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/components/medicine/data';
+   import { excelToJson } from '@/utils/data';
    import { Button } from '@/components/ui/button';
    import { Plus } from 'lucide-vue-next';
    import ManufacturerForm from '@/components/manufacturers/ManufacturerForm.vue';
