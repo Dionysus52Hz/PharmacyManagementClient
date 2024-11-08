@@ -36,7 +36,7 @@ const MENU_ITEMS = [
          {
             icon: Factory,
             text: 'Hãng sản xuất',
-            view: 'manufactures-view',
+            view: 'manufacturers-view',
          },
          {
             icon: UsersRound,
