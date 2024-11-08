@@ -33,7 +33,7 @@
       <DialogContent
          v-on:interact-outside="(e) => e.preventDefault()"
          v-on:open-auto-focus="(e) => e.preventDefault()"
-         class="sm:max-w-[425px] grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]"
+         class="grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]"
       >
          <DialogHeader class="p-6 pb-0">
             <DialogTitle>{{ dialogHeaderTitle }}</DialogTitle>
