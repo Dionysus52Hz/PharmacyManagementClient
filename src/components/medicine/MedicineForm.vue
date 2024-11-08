@@ -58,14 +58,15 @@
 
                   <SelectContent class="max-h-[240px]">
                      <SelectGroup>
-                        <SelectItem value="est">
-                           Eastern Standard Time (EST)
-                        </SelectItem>
-                        <SelectItem value="cst">
-                           Central Standard Time (CST)
-                        </SelectItem>
-                        <SelectItem value="mst">
-                           Mountain Standard Time (MST)
+                        <SelectItem
+                           v-for="manufacturer in manufacturersSelection"
+                           :value="manufacturer.manufacturer_id"
+                        >
+                           {{
+                              manufacturer.manufacturer_id +
+                              ' - ' +
+                              manufacturer.name
+                           }}
                         </SelectItem>
                      </SelectGroup>
                   </SelectContent>
@@ -91,14 +92,11 @@
 
                   <SelectContent class="max-h-[240px]">
                      <SelectGroup>
-                        <SelectItem value="est">
-                           Eastern Standard Time (EST)
-                        </SelectItem>
-                        <SelectItem value="cst">
-                           Central Standard Time (CST)
-                        </SelectItem>
-                        <SelectItem value="mst">
-                           Mountain Standard Time (MST)
+                        <SelectItem
+                           v-for="supplier in suppliersSelection"
+                           :value="supplier.supplier_id"
+                        >
+                           {{ supplier.supplier_id + ' - ' + supplier.name }}
                         </SelectItem>
                      </SelectGroup>
                   </SelectContent>
@@ -143,14 +141,11 @@
 
                   <SelectContent class="max-h-[240px]">
                      <SelectGroup>
-                        <SelectItem value="est">
-                           Eastern Standard Time (EST)
-                        </SelectItem>
-                        <SelectItem value="cst">
-                           Central Standard Time (CST)
-                        </SelectItem>
-                        <SelectItem value="mst">
-                           Mountain Standard Time (MST)
+                        <SelectItem
+                           v-for="category in medicineCategoriesSelection"
+                           :value="category.category_id"
+                        >
+                           {{ category.category_id + ' - ' + category.name }}
                         </SelectItem>
                      </SelectGroup>
                   </SelectContent>
@@ -185,8 +180,37 @@
    import { toTypedSchema } from '@vee-validate/zod';
    import { useForm } from 'vee-validate';
    import * as z from 'zod';
+   import { onMounted, ref } from 'vue';
 
    import type { Medicine } from './schema';
+   import type { Manufacturer } from '@/components/manufacturers/schema';
+   import type { Supplier } from '@/components/suppliers/schema';
+   import type { MedicineCategory } from '@/components/medicine-categories/schema';
+   import { excelToJson } from '@/utils/data';
+
+   const manufacturersSelection = ref<Manufacturer[]>([]);
+   const suppliersSelection = ref<Supplier[]>([]);
+   const medicineCategoriesSelection = ref<MedicineCategory[]>([]);
+
+   async function getManufacturersData(): Promise<Manufacturer[]> {
+      return await excelToJson(excelURL, 'Manufacturers');
+   }
+   async function getSuppliersData(): Promise<Supplier[]> {
+      return await excelToJson(excelURL, 'Suppliers');
+   }
+   async function getMedicineCategoriesData(): Promise<MedicineCategory[]> {
+      return await excelToJson(excelURL, 'Medicine_Categories');
+   }
+
+   const excelURL = 'src/Database.xlsx';
+   onMounted(async () => {
+      manufacturersSelection.value = await getManufacturersData();
+      suppliersSelection.value = await getSuppliersData();
+      medicineCategoriesSelection.value = await getMedicineCategoriesData();
+
+      console.log(manufacturersSelection.value);
+      console.log(suppliersSelection.value);
+   });
 
    const formSchema = toTypedSchema(
       z.object({
