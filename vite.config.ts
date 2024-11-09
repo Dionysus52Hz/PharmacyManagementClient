@@ -17,6 +17,9 @@ export default defineConfig({
             '@': path.resolve(__dirname, './src'),
         },
     },
+    optimizeDeps: {
+        include: ['vue-toastification'], // Đảm bảo thư viện này được Vite xử lý
+    },
     server: {
         port: 5173, // Thiết lập cổng chạy cho máy chủ Vite (frontend)
         proxy: {
