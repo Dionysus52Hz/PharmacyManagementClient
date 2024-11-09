@@ -1,8 +1,10 @@
+<!-- src/components/StatisticDay.vue -->
 <template>
-    <div class="mx-6">
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card class="px-6 my-6" v-for="(item, key) in statistics.currentDay" :key="key">
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+    <div>
+        <div class="mx-6">
+            <!-- <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card class="px-6 my-6" v-for="(item, key) in statisticDayData" :key="key">
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle class="text-sm font-medium">{{ item.title }}</CardTitle>
                 </CardHeader>
                 <CardContent class="flex justify-between items-center">
@@ -51,112 +53,136 @@
                         </span>
                     </p>
                 </CardContent>
-            </Card>
-        </div>
+                </Card>
+            </div> -->
 
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Mã Phiếu nhập</th>
-                        <th scope="col" class="px-6 py-3">Mã Nhân viên</th>
-                        <th scope="col" class="px-6 py-3">Mã Nhà Cung Cấp</th>
-                        <th scope="col" class="px-6 py-3">Mã Thuốc</th>
-                        <th scope="col" class="px-6 py-3">Ngày nhập</th>
-                        <th scope="col" class="px-6 py-3">Số Lượng</th>
-                        <th scope="col" class="px-6 py-3">Giá</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="note in statistics.receivedNotes" :key="note.received_note_id">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ note.received_note_id }}
-                        </th>
-                        <td class="px-6 py-4">{{ note.employee_id }}</td>
-                        <td class="px-6 py-4">{{ note.supplier_id }}</td>
-                        <td class="px-6 py-4">{{ note.medicine_id }}</td>
-                        <td class="px-6 py-4">{{ note.received_date }}</td>
-                        <td class="px-6 py-4">{{ note.quantity }}</td>
-                        <td class="px-6 py-4">{{ note.price }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Mã Phiếu nhập</th>
+                            <th scope="col" class="px-6 py-3">Mã Nhân viên</th>
+                            <th scope="col" class="px-6 py-3">Mã Nhà Cung Cấp</th>
+                            <th scope="col" class="px-6 py-3">Mã Thuốc</th>
+                            <th scope="col" class="px-6 py-3">Ngày nhập</th>
+                            <th scope="col" class="px-6 py-3">Số Lượng</th>
+                            <th scope="col" class="px-6 py-3">Giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="note in statisticDayData.resultsInput" :key="note.received_note_id">
+                            <th
+                                scope="row"
+                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                            >
+                                {{ note.received_note_id }}
+                            </th>
+                            <td class="px-6 py-4">{{ note.employee_id }}</td>
+                            <td class="px-6 py-4">{{ note.supplier_id }}</td>
+                            <td class="px-6 py-4">{{ note.medicine_id }}</td>
+                            <td class="px-6 py-4">{{ formatDate(note.received_date) }}</td>
+                            <td class="px-6 py-4">{{ note.quantity }}</td>
+                            <td class="px-6 py-4">{{ formatCurrency(note.price) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div class="grid grid-cols-3 gap-4">
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Cao Nhất: </span>
-                    <p class="text-xl">{{ statistics.maxPrice | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
-                    <p class="text-xl">{{ statistics.minPrice | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Trung Bình: </span>
-                    <p class="text-xl">{{ statistics.avgPrice | currency }}</p>
+            <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Cao Nhất: </span>
+                        <p class="text-xl">{{ formatCurrency(statisticDayData.maxPriceRowInput.price) }}</p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.minPriceRowInput.price) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Trung Bình: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.avgPriceInput) }}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <tr>
-                        <th scope="col" class="px-6 py-3">Mã Phiếu Chi</th>
-                        <th scope="col" class="px-6 py-3">Mã Nhân viên</th>
-                        <th scope="col" class="px-6 py-3">Mã Khách hàng</th>
-                        <th scope="col" class="px-6 py-3">Mã Thuốc</th>
-                        <th scope="col" class="px-6 py-3">Ngày xuất</th>
-                        <th scope="col" class="px-6 py-3">Số Lượng</th>
-                        <th scope="col" class="px-6 py-3">Giá</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="note in statistics.deliveryNotes" :key="note.delivery_note_id">
-                        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                            {{ note.delivery_note_id }}
-                        </th>
-                        <td class="px-6 py-4">{{ note.employee_id }}</td>
-                        <td class="px-6 py-4">{{ note.customer_id }}</td>
-                        <td class="px-6 py-4">{{ note.medicine_id }}</td>
-                        <td class="px-6 py-4">{{ note.delivery_date }}</td>
-                        <td class="px-6 py-4">{{ note.quantity }}</td>
-                        <td class="px-6 py-4">{{ note.price }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div class="grid grid-cols-3 gap-4">
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Cao Nhất: </span>
-                    <p class="text-xl">{{ statistics.maxPrice | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
-                    <p class="text-xl">{{ statistics.minPrice | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Giá Trung Bình: </span>
-                    <p class="text-xl">{{ statistics.avgPrice | currency }}</p>
+            <div class="relative my-6 overflow-x-auto shadow-md sm:rounded-lg">
+                <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Mã Phiếu Chi</th>
+                            <th scope="col" class="px-6 py-3">Mã Nhân viên</th>
+                            <th scope="col" class="px-6 py-3">Mã Khách hàng</th>
+                            <th scope="col" class="px-6 py-3">Mã Thuốc</th>
+                            <th scope="col" class="px-6 py-3">Ngày xuất</th>
+                            <th scope="col" class="px-6 py-3">Số Lượng</th>
+                            <th scope="col" class="px-6 py-3">Giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="note in statisticDayData.resultsOutput" :key="note.delivery_note_id">
+                            <th
+                                scope="row"
+                                class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                            >
+                                {{ note.delivery_note_id }}
+                            </th>
+                            <td class="px-6 py-4">{{ note.employee_id }}</td>
+                            <td class="px-6 py-4">{{ note.customer_id }}</td>
+                            <td class="px-6 py-4">{{ note.medicine_id }}</td>
+                            <td class="px-6 py-4">{{ formatDate(note.delivery_date) }}</td>
+                            <td class="px-6 py-4">{{ note.quantity }}</td>
+                            <td class="px-6 py-4">{{ formatCurrency(note.price) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Cao Nhất: </span>
+                        <p class="text-xl">
+                            <!-- {{ formatCurrency(statisticDayData.maxPriceRowOutput.price) | currency }} -->
+                            {{ formatCurrency(statisticDayData.maxPriceRowOutput.price) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.minPriceRowOutput.price) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Giá Trung Bình: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.avgPriceOutput) }}
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div class="grid grid-cols-3 gap-4">
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Tổng thu: </span>
-                    <p class="text-xl">{{ statistics.totalPriceInput | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Tổng chi: </span>
-                    <p class="text-xl">{{ statistics.totalPriceOutput | currency }}</p>
-                </div>
-                <div class="flex items-center space-x-2 text-start">
-                    <span class="text-lg font-semibold">Lợi nhuận: </span>
-                    <p class="text-xl">{{ statistics.totalProfit | currency }}</p>
+            <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Tổng thu: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.totalPriceInput) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Tổng chi: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.totalPriceOutput) }}
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-2 text-start">
+                        <span class="text-lg font-semibold">Lợi nhuận: </span>
+                        <p class="text-xl">
+                            {{ formatCurrency(statisticDayData.totalProfit) }}
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -167,32 +193,33 @@
 import { defineProps, ref, onMounted } from 'vue';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-// Nhận props statistics từ parent component
+// Nhận dữ liệu thống kê theo ngày từ component cha
 const props = defineProps({
-    statistics: {
-        type: Object,
-        required: true,
+    statisticDayData: {
+        type: Object as () => Record<string, any> | null,
+        default: () => ({}),
     },
 });
+function formatCurrency(value: number) {
+    if (isNaN(value) || value === null || value === undefined) {
+        return '0';
+    }
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+}
+function formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 onMounted(() => {
-    console.log('statistics.currentDay: ', props.statistics.currentDay);
+    console.log('statisticDayData: ', props.statisticDayData);
+    console.log(' {{ statisticDayData.maxPriceRowOutput.price }}: ', props.statisticDayData.maxPriceRowOutput.price);
 });
 </script>
 
 <style scoped>
-/* table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th,
-td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-th {
-    background-color: #f4f4f4;
-} */
+/* Thêm CSS tùy chỉnh nếu cần */
 </style>
