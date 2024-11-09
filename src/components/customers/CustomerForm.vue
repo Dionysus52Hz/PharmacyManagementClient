@@ -6,15 +6,15 @@
       >
          <FormField
             v-slot="{ componentField }"
-            name="supplier_id"
+            name="customer_id"
          >
             <FormItem v-auto-animate>
-               <FormLabel>Mã nhà cung cấp</FormLabel>
+               <FormLabel>Mã khách hàng</FormLabel>
 
                <FormControl>
                   <Input
                      type="text"
-                     placeholder="Nhập mã nhà cung cấp"
+                     placeholder="Nhập mã khách hàng"
                      v-bind="componentField"
                   />
                </FormControl>
@@ -28,12 +28,31 @@
             name="name"
          >
             <FormItem v-auto-animate>
-               <FormLabel>Tên nhà cung cấp</FormLabel>
+               <FormLabel>Họ và tên</FormLabel>
 
                <FormControl>
                   <Input
                      type="text"
-                     placeholder="Nhập tên nhà cung cấp"
+                     placeholder="Nhập họ và tên"
+                     v-bind="componentField"
+                  />
+               </FormControl>
+
+               <FormMessage />
+            </FormItem>
+         </FormField>
+
+         <FormField
+            v-slot="{ componentField }"
+            name="phone"
+         >
+            <FormItem v-auto-animate>
+               <FormLabel>Số điện thoại</FormLabel>
+
+               <FormControl>
+                  <Input
+                     type="text"
+                     placeholder="Nhập số điện thoại"
                      v-bind="componentField"
                   />
                </FormControl>
@@ -60,25 +79,6 @@
                <FormMessage />
             </FormItem>
          </FormField>
-
-         <FormField
-            v-slot="{ componentField }"
-            name="representative"
-         >
-            <FormItem v-auto-animate>
-               <FormLabel>Người đại diện</FormLabel>
-
-               <FormControl>
-                  <Input
-                     type="text"
-                     placeholder="Nhập tên người đại diện"
-                     v-bind="componentField"
-                  />
-               </FormControl>
-
-               <FormMessage />
-            </FormItem>
-         </FormField>
       </form>
    </div>
 </template>
@@ -98,35 +98,35 @@
    import { useForm } from 'vee-validate';
    import * as z from 'zod';
 
-   import type { Supplier } from './schema';
+   import type { Customer } from './schema';
 
    const formSchema = toTypedSchema(
       z.object({
-         supplier_id: z
+         customer_id: z
             .string({
-               required_error: 'Mã nhà cung cấp không thể để trống',
+               required_error: 'Mã khách hàng không thể để trống',
             })
-            .min(1, { message: 'Mã nhà cung cấp không thể để trống' }),
+            .min(1, { message: 'Mã khách hàng không thể để trống' }),
          name: z
             .string({
-               required_error: 'Tên nhà cung cấp không thể để trống',
+               required_error: 'Họ và tên không thể để trống',
             })
-            .min(1, { message: 'Tên nhà cung cấp không thể để trống' }),
+            .min(1, { message: 'Họ và tên không thể để trống' }),
          address: z
             .string({
                required_error: 'Địa chỉ không thể để trống',
             })
             .min(1, { message: 'Địa chỉ không thể để trống' }),
-         representative: z
+         phone: z
             .string({
-               required_error: 'Người đại diện không thể để trống',
+               required_error: 'Số điện thoại không thể để trống',
             })
-            .min(1, { message: 'Người đại diện không thể để trống' }),
+            .min(1, { message: 'Số điện thoại không thể để trống' }),
       })
    );
 
    const props = defineProps<{
-      defaultValues?: Supplier;
+      defaultValues?: Customer;
    }>();
 
    const { handleSubmit } = useForm({
