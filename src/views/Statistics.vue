@@ -93,15 +93,16 @@ const fetchStatisticDay = async () => {
     const formattedEndDate = formatDate(endDate.value);
     console.log('formattedStartDate: ', formattedStartDate);
     console.log('formattedEndDate: ', formattedEndDate);
-
     try {
-        // Gọi API để lấy thống kê cho mốc thời gian đã chọn
+        const user = JSON.parse(localStorage.getItem('userToken'));
+        const userToken = user.accessToken;
         const res = await fetch(
             `http://localhost:3001/api/statistic/day/?startDate=${formattedStartDate}&endDate=${formattedEndDate}`,
             {
                 method: 'GET', // Phương thức GET
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `Bearer ${userToken}`,
                 },
             },
         );

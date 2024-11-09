@@ -112,7 +112,7 @@ const onSubmit = handleSubmit(async (values) => {
             return;
         }
         toast.success('Đăng nhập thành công!');
-        localStorage.setItem('userToken', data);
+        localStorage.setItem('userToken', JSON.stringify(data));
         router.push('/employees');
     } catch (error) {
         console.error('Error:', error);
