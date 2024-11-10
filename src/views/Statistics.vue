@@ -11,7 +11,7 @@
             <Tabs default-value="day" v-model="selectedTab" class="space-y-4">
                 <TabsList>
                     <TabsTrigger value="day">Ngày</TabsTrigger>
-                    <TabsTrigger value="quarter">Quý</TabsTrigger>
+                    <TabsTrigger value="quarterly">Quý</TabsTrigger>
                     <TabsTrigger value="monthly">Tháng</TabsTrigger>
                     <TabsTrigger value="yearly">Năm</TabsTrigger>
                 </TabsList>
@@ -85,6 +85,49 @@
                     <StatisticMonthly v-if="statisticMonthlyData" :statisticMonthlyData="statisticMonthlyData" />
                     <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
                 </TabsContent>
+
+                <TabsContent value="quarterly">
+                    <div class="flex items-center space-x-2 mt-4">
+                        <Select v-model="selectedQuarter" class="w-[200px]">
+                            <SelectTrigger>
+                                <div
+                                    class="w-full p-0 text-left flex justify-between items-center cursor-pointer"
+                                    :class="selectedQuarter ? 'text-black' : 'text-gray-500'"
+                                >
+                                    {{ selectedQuarter ? `Quý ${selectedQuarter}` : 'Chọn quý' }}
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="quarter in quarters" :key="quarter" :value="String(quarter)">
+                                    {{ `Quý ${quarter}` }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select v-model="selectedYear" class="w-[200px]">
+                            <SelectTrigger>
+                                <div
+                                    class="w-full p-0 text-left flex justify-between items-center cursor-pointer"
+                                    :class="selectedYear ? 'text-black' : 'text-gray-500'"
+                                >
+                                    {{ selectedYear ? `Năm ${selectedYear}` : 'Chọn năm' }}
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="year in years" :key="year" :value="String(year)">
+                                    {{ year }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Button @click="fetchStatisticQuarter">Thống kê</Button>
+                    </div>
+                    <StatisticQuarterly
+                        v-if="statisticQuarterlyData"
+                        :statisticQuarterlyData="statisticQuarterlyData"
+                    />
+                    <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
+                </TabsContent>
             </Tabs>
         </div>
     </div>
@@ -101,14 +144,16 @@ import axios from 'axios';
 import { useToast } from 'vue-toastification';
 import StatisticDay from '@/views/StatisticDay.vue';
 import StatisticMonthly from '@/views/StatisticMonthly.vue';
+import StatisticQuarterly from '@/views/StatisticQuarterly.vue';
 
 const selectedTab = ref('day'); // Dùng để theo dõi tab được chọn (day, month, etc.)
 const startDate = ref(null);
 const endDate = ref(null);
-const monthYear = ref(null);
 
 const statisticDayData = ref(null);
 const statisticMonthlyData = ref(null);
+const statisticQuarterlyData = ref(null);
+
 const months = [
     { label: 'Tháng 1', value: 1 },
     { label: 'Tháng 2', value: 2 },
@@ -123,19 +168,17 @@ const months = [
     { label: 'Tháng 11', value: 11 },
     { label: 'Tháng 12', value: 12 },
 ];
-
+const quarters = [1, 2, 3, 4];
 const years = Array.from({ length: 25 }, (_, i) => 2000 + i); // Tạo dãy năm từ 2020 đến 2029
 
 const selectedMonth = ref('');
 const selectedYear = ref('');
+const selectedQuarter = ref(null);
 
 console.log('selectedMonth: ', selectedMonth);
 console.log('selectedYear: ', selectedYear);
 
 const fetchStatisticMonth = async () => {
-    const monthYear = `${selectedMonth.value}-${selectedYear.value}`;
-    console.log('Month-Year:', monthYear);
-
     const toast = useToast();
     try {
         const user = JSON.parse(localStorage.getItem('userToken'));
@@ -159,6 +202,37 @@ const fetchStatisticMonth = async () => {
         }
         statisticMonthlyData.value = data;
         console.log('statisticMonthlyData.value: ', statisticMonthlyData.value);
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+        toast.error('Không thể tải dữ liệu.');
+    }
+};
+
+const fetchStatisticQuarter = async () => {
+    const quarterYear = `${selectedQuarter.value}-${selectedYear.value}`;
+    console.log('quarterYear: ', quarterYear);
+    const toast = useToast();
+    try {
+        const user = JSON.parse(localStorage.getItem('userToken'));
+        const userToken = user.accessToken;
+        const res = await fetch(
+            `http://localhost:3001/api/statistic/quarter/?quarter=${selectedQuarter.value}&year=${selectedYear.value}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${userToken}`,
+                },
+            },
+        );
+        const data = await res.json();
+        console.log('dataStatisticQuarter: ', data);
+        if (!data.success) {
+            toast.error(data.message);
+            return;
+        }
+        statisticQuarterlyData.value = data;
+        console.log('statisticQuarterlyData.value: ', statisticQuarterlyData.value);
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
         toast.error('Không thể tải dữ liệu.');
