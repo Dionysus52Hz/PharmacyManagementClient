@@ -13,20 +13,20 @@
 
             <DropdownMenuItem
                @click="
-                  copyId(props.row.original.received_note_id),
+                  copyId(props.row.original.delivery_note_id),
                      console.log(props.row.original)
                "
             >
                <Copy class="w-5 h-5" />
-               Sao chép mã phiếu nhập
+               Sao chép mã phiếu
             </DropdownMenuItem>
 
             <DialogTrigger asChild>
                <DropdownMenuItem
                   @click="
                      (actionState = 'show-details'),
-                        showReceivedNoteDetails(
-                           props.row.original.received_note_id
+                        showDeliveryNoteDetails(
+                           props.row.original.delivery_note_id
                         )
                   "
                >
@@ -46,8 +46,8 @@
          v-on:open-auto-focus="(e) => e.preventDefault()"
          class="grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]"
          :class="{
-            'max-w-[90dvw] min-h-[90dvh]':
-               actionState === 'show-details' || actionState === 'update',
+            'max-w-[90dvw] min-h-[90dvh]': actionState === 'update',
+            'h-auto max-w-[90dvw]': actionState == 'show-details',
          }"
       >
          <DialogHeader class="p-6 pb-0">
@@ -81,11 +81,11 @@
                <template v-slot:action-buttons>
                   <Button
                      @click="
-                        [(actionState = 'update'), getReceivedNoteDetailsData()]
+                        [(actionState = 'update'), getDeliveryNoteDetailsData()]
                      "
                   >
                      <Pencil class="w-5 h-5 mr-2" />
-                     Sửa phiếu nhập
+                     Sửa phiếu
                   </Button>
                </template>
             </DataTable>
@@ -95,12 +95,12 @@
                v-if="actionState === 'update'"
                v-auto-animate
             >
-               <ReceivedNoteForm
-                  ref="receivedNoteFormRef"
+               <DeliveryNoteForm
+                  ref="deliveryNoteFormRef"
                   :init-num-of-details-form="initNumOfDetailsForm"
-                  :default-values="receivedNoteDetailsData"
+                  :default-values="deliveryNoteDetailsData"
                >
-               </ReceivedNoteForm>
+               </DeliveryNoteForm>
             </div>
          </div>
 
@@ -116,7 +116,7 @@
             <Button
                v-if="actionState === 'update'"
                class="w-full"
-               @click="updateReceivedNotes"
+               @click="updateDeliveryNotes"
             >
                Cập nhật
             </Button>
@@ -131,7 +131,7 @@
             </Button>
             <Button
                v-if="actionState === 'delete'"
-               @click="deleteReceivedNote(props.row.original.received_note_id)"
+               @click="deleteDeliveryNote(props.row.original.delivery_note_id)"
                class="w-full"
                variant="destructive"
             >
@@ -178,30 +178,30 @@
 
    import { MoreHorizontal, Copy, Pencil, Trash } from 'lucide-vue-next';
    import type { Row } from '@tanstack/vue-table';
-   import type { ReceivedNote } from './schema';
-   import type { ReceivedNoteDetails } from '../received-notes-details/schema';
-   import ReceivedNoteForm from './ReceivedNoteForm.vue';
+   import type { DeliveryNote } from './schema';
+   import type { DeliveryNoteDetails } from '../delivery-note-details/schema';
+   import DeliveryNoteForm from './DeliveryNoteForm.vue';
    import { DataTable } from '@/components/ui/data-table';
-   import { columns } from '@/components/received-notes-details/columns';
+   import { columns } from '@/components/delivery-note-details/columns';
    import { onMounted, computed, ref } from 'vue';
    import { excelToJson } from '@/utils/data';
    import { vAutoAnimate } from '@formkit/auto-animate/vue';
 
-   const data = ref<ReceivedNoteDetails[]>([]);
+   const data = ref<DeliveryNoteDetails[]>([]);
 
-   async function getData(): Promise<ReceivedNoteDetails[]> {
-      return await excelToJson(excelURL, 'ReceivedNoteDetails');
+   async function getData(): Promise<DeliveryNoteDetails[]> {
+      return await excelToJson(excelURL, 'DeliveryNoteDetails');
    }
 
    const excelURL = 'src/Database.xlsx';
-   const receivedNoteFormRef = ref<InstanceType<
-      typeof ReceivedNoteForm
+   const deliveryNoteFormRef = ref<InstanceType<
+      typeof DeliveryNoteForm
    > | null>(null);
 
    const filteredColumn = ref<string>('medicine_id');
 
    interface DataTableRowActionProps {
-      row: Row<ReceivedNote>;
+      row: Row<DeliveryNote>;
    }
 
    const props = defineProps<DataTableRowActionProps>();
@@ -211,23 +211,24 @@
       console.log(id);
    };
 
-   const receivedNoteDetailsData = ref<ReceivedNote>();
+   const deliveryNoteDetailsData = ref<DeliveryNote>();
+
    const initNumOfDetailsForm = ref<number>(0);
-   const getReceivedNoteDetailsData = async () => {
-      receivedNoteDetailsData.value = {
+   const getDeliveryNoteDetailsData = async () => {
+      deliveryNoteDetailsData.value = {
          ...props.row.original,
       };
-      receivedNoteDetailsData.value.details = (await getData()).filter(
-         (note) => note.received_note_id === props.row.original.received_note_id
+      deliveryNoteDetailsData.value.details = (await getData()).filter(
+         (note) => note.delivery_note_id === props.row.original.delivery_note_id
       );
-      initNumOfDetailsForm.value = receivedNoteDetailsData.value.details.length;
+      initNumOfDetailsForm.value = deliveryNoteDetailsData.value.details.length;
       console.log(initNumOfDetailsForm.value);
-      console.log(receivedNoteDetailsData.value);
+      console.log(deliveryNoteDetailsData.value);
    };
 
-   const showReceivedNoteDetails = async (id: string) => {
+   const showDeliveryNoteDetails = async (id: string) => {
       data.value = (await getData()).filter(
-         (note) => note.received_note_id === id
+         (note) => note.delivery_note_id === id
       );
    };
 
@@ -237,13 +238,13 @@
    const dialogHeaderTitle = computed(() => {
       switch (actionState.value) {
          case 'add':
-            return 'Thêm phiếu nhập mới';
+            return 'Thêm phiếu xuất mới';
          case 'show-details':
-            return 'Chi tiết phiếu nhập';
+            return 'Chi tiết phiếu xuất';
          case 'update':
-            return 'Sửa thông tin phiếu nhập';
+            return 'Sửa thông tin phiếu xuất';
          case 'delete':
-            return 'Xoá phiếu nhập';
+            return 'Xoá phiếu xuất';
       }
    });
 
@@ -251,13 +252,13 @@
       data.value = await getData();
    });
 
-   const updateReceivedNotes = async () => {
-      if (receivedNoteFormRef.value) {
-         await receivedNoteFormRef.value.onSubmit();
+   const updateDeliveryNotes = async () => {
+      if (deliveryNoteFormRef.value) {
+         await deliveryNoteFormRef.value.onSubmit();
       }
    };
 
-   const deleteReceivedNote = (receivedNoteId: string) => {
-      console.log(receivedNoteId);
+   const deleteDeliveryNote = (deliveryNoteId: string) => {
+      console.log(deliveryNoteId);
    };
 </script>

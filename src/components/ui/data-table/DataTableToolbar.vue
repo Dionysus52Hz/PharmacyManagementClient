@@ -1,6 +1,6 @@
 <template>
    <div class="flex flex-1 items-center space-x-2">
-      <div class="relative h-full grow">
+      <div class="relative h-10 grow">
          <Input
             placeholder="Tìm kiếm nhanh..."
             :model-value="(table.getColumn(props.filteredColumn)?.getFilterValue() as string) ?? ''"
