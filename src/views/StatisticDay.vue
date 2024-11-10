@@ -82,7 +82,7 @@
                             <td class="px-6 py-4">{{ note.medicine_id }}</td>
                             <td class="px-6 py-4">{{ formatDate(note.received_date) }}</td>
                             <td class="px-6 py-4">{{ note.quantity }}</td>
-                            <td class="px-6 py-4">{{ formatCurrency(note.price) }}</td>
+                            <td class="px-6 py-4">{{ formatCurrency(note.price || 0) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -92,18 +92,18 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Cao Nhất: </span>
-                        <p class="text-xl">{{ formatCurrency(statisticDayData.maxPriceRowInput.price) }}</p>
+                        <p class="text-xl">{{ formatCurrency(statisticDayData.maxPriceRowInput.price || 0) }}</p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.minPriceRowInput.price) }}
+                            {{ formatCurrency(statisticDayData.minPriceRowInput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Trung Bình: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.avgPriceInput) }}
+                            {{ formatCurrency(statisticDayData.avgPriceInput || 0) }}
                         </p>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
                             <td class="px-6 py-4">{{ note.medicine_id }}</td>
                             <td class="px-6 py-4">{{ formatDate(note.delivery_date) }}</td>
                             <td class="px-6 py-4">{{ note.quantity }}</td>
-                            <td class="px-6 py-4">{{ formatCurrency(note.price) }}</td>
+                            <td class="px-6 py-4">{{ formatCurrency(note.price || 0) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -145,20 +145,20 @@
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Cao Nhất: </span>
                         <p class="text-xl">
-                            <!-- {{ formatCurrency(statisticDayData.maxPriceRowOutput.price) | currency }} -->
-                            {{ formatCurrency(statisticDayData.maxPriceRowOutput.price) }}
+                            <!-- {{ formatCurrency(statisticDayData.maxPriceRowOutput.price || 0) | currency }} -->
+                            {{ formatCurrency(statisticDayData.maxPriceRowOutput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.minPriceRowOutput.price) }}
+                            {{ formatCurrency(statisticDayData.minPriceRowOutput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Trung Bình: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.avgPriceOutput) }}
+                            {{ formatCurrency(statisticDayData.avgPriceOutput || 0) }}
                         </p>
                     </div>
                 </div>
@@ -168,19 +168,19 @@
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Tổng thu: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalPriceInput) }}
+                            {{ formatCurrency(statisticDayData.totalPriceInput || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Tổng chi: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalPriceOutput) }}
+                            {{ formatCurrency(statisticDayData.totalPriceOutput || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Lợi nhuận: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalProfit) }}
+                            {{ formatCurrency(statisticDayData.totalProfit || 0) }}
                         </p>
                     </div>
                 </div>
@@ -201,7 +201,7 @@ const props = defineProps({
     },
 });
 function formatCurrency(value: number) {
-    if (isNaN(value) || value === null || value === undefined) {
+    if (!value || isNaN(value) || value === null || value === undefined) {
         return '0';
     }
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);

@@ -1,53 +1,87 @@
 <template>
-    <div>
+    <div class="mx-6">
         <div class="flex items-center space-between">
-            <div class="title px-6 flex flex-col gap-y-2">
+            <div class="title flex flex-col gap-y-2">
                 <h1 class="font-bold text-[32px] leading-none">Thống kê</h1>
                 <h3 class="font-semibold text-sm text-gray-500">Quản lý danh sách thống kê tại đây.</h3>
             </div>
         </div>
 
-        <div class="mx-6">
-            <div class="flex items-center space-x-2">
-                <Popover>
-                    <PopoverTrigger as-child>
-                        <Button variant="outline" class="w-[200px] justify-start text-left font-normal">
-                            {{ startDate ? formatDate(startDate) : 'Chọn ngày bắt đầu' }}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent class="p-2">
-                        <Calendar v-model="startDate" placeholder="Chọn ngày bắt đầu" />
-                    </PopoverContent>
-                </Popover>
-
-                <!-- Popover cho Calendar ngày kết thúc -->
-                <Popover>
-                    <PopoverTrigger as-child>
-                        <Button variant="outline" class="w-[200px] justify-start text-left font-normal">
-                            {{ endDate ? formatDate(endDate) : 'Chọn ngày kết thúc' }}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent class="p-2">
-                        <Calendar v-model="endDate" placeholder="Chọn ngày kết thúc" />
-                    </PopoverContent>
-                </Popover>
-
-                <!-- Button tải dữ liệu -->
-                <Button @click="fetchStatisticDay">Submit</Button>
-            </div>
-
-            <Tabs default-value="day" class="space-y-4">
+        <div>
+            <Tabs default-value="day" v-model="selectedTab" class="space-y-4">
                 <TabsList>
                     <TabsTrigger value="day">Ngày</TabsTrigger>
                     <TabsTrigger value="quarter">Quý</TabsTrigger>
                     <TabsTrigger value="monthly">Tháng</TabsTrigger>
                     <TabsTrigger value="yearly">Năm</TabsTrigger>
                 </TabsList>
-                <TabsContent value="day">
+
+                <TabsContent value="day" class="mx-0">
+                    <div class="flex items-center space-x-2 mt-4">
+                        <Popover>
+                            <PopoverTrigger as-child>
+                                <Button variant="outline" class="w-[200px] justify-start text-left font-normal">
+                                    {{ startDate ? formatDate(startDate) : 'Chọn ngày bắt đầu' }}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent class="p-2">
+                                <Calendar v-model="startDate" placeholder="Chọn ngày bắt đầu" />
+                            </PopoverContent>
+                        </Popover>
+
+                        <Popover>
+                            <PopoverTrigger as-child>
+                                <Button variant="outline" class="w-[200px] mx-6 justify-start text-left font-normal">
+                                    {{ endDate ? formatDate(endDate) : 'Chọn ngày kết thúc' }}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent class="p-2 mx-6">
+                                <Calendar v-model="endDate" placeholder="Chọn ngày kết thúc" />
+                            </PopoverContent>
+                        </Popover>
+
+                        <Button @click="fetchStatisticDay">Submit</Button>
+                    </div>
                     <StatisticDay v-if="statisticDayData" :statisticDayData="statisticDayData" />
-                    <p v-else>Không có dữ liệu để hiển thị.</p>
+                    <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
                 </TabsContent>
-                <!-- TabsContent sẽ ở đây khi có dữ liệu -->
+
+                <TabsContent value="monthly">
+                    <div class="flex items-center space-x-2 mt-4">
+                        <Select v-model="selectedMonth" class="w-[200px]">
+                            <SelectTrigger>
+                                <Button
+                                    variant="outline"
+                                    class="w-full p-0 text-left flex justify-between items-center"
+                                >
+                                    {{ selectedMonth ? `Tháng ${selectedMonth}` : 'Chọn tháng' }}
+                                </Button>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="month in months" :key="month.value" :value="String(month.value)">
+                                    {{ month.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select v-model="selectedYear" class="w-[200px]">
+                            <SelectTrigger>
+                                <Button variant="outline" class="w-full text-left">
+                                    {{ selectedYear ? `Năm ${selectedYear}` : 'Chọn năm' }}
+                                </Button>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="year in years" :key="year" :value="String(year)">
+                                    {{ year }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Button @click="fetchStatisticMonth">Submit</Button>
+                    </div>
+                    <StatisticMonthly v-if="statisticMonthlyData" :statisticMonthlyData="statisticMonthlyData" />
+                    <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
+                </TabsContent>
             </Tabs>
         </div>
     </div>
@@ -59,16 +93,55 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar'; // Import Calendar từ ShadCN
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'; // Import Popover
+import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
 import axios from 'axios';
+import { useToast } from 'vue-toastification';
 import StatisticDay from '@/views/StatisticDay.vue';
 
-// Khai báo các biến ngày bắt đầu và kết thúc
-// const startDate = ref<string | null>(null);
-// const endDate = ref<string | null>(null);
+// const startDate = ref<Date | null>(null);
+// const endDate = ref<Date | null>(null);
+const selectedTab = ref('day'); // Dùng để theo dõi tab được chọn (day, month, etc.)
+const startDate = ref(null);
+const endDate = ref(null);
+const monthYear = ref(null);
 
-const startDate = ref<Date | null>(null);
-const endDate = ref<Date | null>(null);
-const statisticDayData = ref<Record<string, any> | null>(null);
+const statisticDayData = ref(null);
+const statisticMonthlyData = ref(null);
+const months = [
+    { label: 'Tháng 1', value: 1 },
+    { label: 'Tháng 2', value: 2 },
+    { label: 'Tháng 3', value: 3 },
+    { label: 'Tháng 4', value: 4 },
+    { label: 'Tháng 5', value: 5 },
+    { label: 'Tháng 6', value: 6 },
+    { label: 'Tháng 7', value: 7 },
+    { label: 'Tháng 8', value: 8 },
+    { label: 'Tháng 9', value: 9 },
+    { label: 'Tháng 10', value: 10 },
+    { label: 'Tháng 11', value: 11 },
+    { label: 'Tháng 12', value: 12 },
+];
+
+const years = Array.from({ length: 10 }, (_, i) => 2020 + i); // Tạo dãy năm từ 2020 đến 2029
+
+const selectedMonth = ref('');
+const selectedYear = ref('');
+
+console.log('selectedMonth: ', selectedMonth);
+console.log('selectedYear: ', selectedYear);
+
+// Hàm gọi API khi chọn tháng và năm
+const fetchStatisticMonth = () => {
+    const monthYear = `${selectedMonth.value}-${selectedYear.value}`;
+    console.log('Month-Year:', monthYear);
+    // Thực hiện gọi API hoặc logic xử lý thống kê theo tháng và năm
+};
+
+// Hàm định dạng tháng và năm
+const formatMonth = (value) => {
+    return `${value ? value.month : 'MM'}/${value ? value.year : 'YYYY'}`;
+};
+// const statisticDayData = ref<Record<string, any> | null>(null);
 const formatDate = (date: Date | string | null) => {
     if (!date) return '';
     const d = new Date(date);
@@ -82,6 +155,19 @@ const formatDate = (date: Date | string | null) => {
     return `${year}-${month}-${day}`;
 };
 
+// const formatMonth = (date: Date | string | null) => {
+//     if (!date) return '';
+//     const d = new Date(date);
+
+//     // Đảm bảo ngày và tháng có 2 chữ số nếu cần
+//     const year = d.getFullYear();
+//     const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Tháng bắt đầu từ 0, cần +1
+//     const day = d.getDate().toString().padStart(2, '0');
+
+//     // Trả về định dạng yyyy/mm/dd
+//     return `${month}-${day}`;
+// };
+
 // Hàm gọi API để lấy thống kê theo ngày
 const fetchStatisticDay = async () => {
     // Kiểm tra nếu không có giá trị startDate hoặc endDate
@@ -91,8 +177,7 @@ const fetchStatisticDay = async () => {
     }
     const formattedStartDate = formatDate(startDate.value);
     const formattedEndDate = formatDate(endDate.value);
-    console.log('formattedStartDate: ', formattedStartDate);
-    console.log('formattedEndDate: ', formattedEndDate);
+    const toast = useToast();
     try {
         const user = JSON.parse(localStorage.getItem('userToken'));
         const userToken = user.accessToken;
@@ -109,11 +194,15 @@ const fetchStatisticDay = async () => {
         // Chuyển đổi phản hồi sang JSON
         const data = await res.json();
         console.log('dataStatisticDay: ', data);
+        if (!data.success) {
+            toast.error(data.message);
+            return;
+        }
         statisticDayData.value = data;
         console.log('statisticDayData.value: ', statisticDayData.value);
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
-        alert('Không thể tải dữ liệu.');
+        toast.error('Không thể tải dữ liệu.');
     }
 };
 </script>
