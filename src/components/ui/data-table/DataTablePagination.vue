@@ -1,5 +1,5 @@
 <template>
-   <div class="grid grid-cols-4 py-6 items-center">
+   <div class="grid grid-cols-4 py-6 items-start">
       <div class="flex items-center space-x-2">
          <p class="text-sm">Số dòng trên trang</p>
 
@@ -31,7 +31,7 @@
          :items-per-page="table.getState().pagination.pageSize"
          show-edges
          :default-page="1"
-         class="col-start-2 col-span-2 place-self-center"
+         class="col-span-2 flex justify-center"
       >
          <PaginationList
             v-slot="{ items }"
@@ -108,7 +108,7 @@
       </Pagination>
 
       <div
-         class="place-self-end h-full flex items-center gap-x-1 text-sm font-medium"
+         class="h-10 flex items-center justify-end gap-x-1 text-sm font-medium"
       >
          Trang
          <span class="font-bold"
