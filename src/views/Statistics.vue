@@ -8,7 +8,7 @@
         </div>
 
         <div>
-            <Tabs default-value="day" v-model="selectedTab" class="space-y-4">
+            <Tabs default-value="day" v-model="selectedTab" class="space-y-4 my-4">
                 <TabsList>
                     <TabsTrigger value="day">Ngày</TabsTrigger>
                     <TabsTrigger value="quarterly">Quý</TabsTrigger>
@@ -20,22 +20,22 @@
                     <div class="flex items-center space-x-2 mt-4">
                         <Popover>
                             <PopoverTrigger as-child>
-                                <Button variant="outline" class="w-[200px] justify-start text-left font-normal">
+                                <Button variant="outline" class="w-full justify-start text-left font-normal">
                                     {{ startDate ? formatDate(startDate) : 'Chọn ngày bắt đầu' }}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent class="p-2">
+                            <PopoverContent class="w-full p-2">
                                 <Calendar v-model="startDate" placeholder="Chọn ngày bắt đầu" />
                             </PopoverContent>
                         </Popover>
 
                         <Popover>
                             <PopoverTrigger as-child>
-                                <Button variant="outline" class="w-[200px] mx-6 justify-start text-left font-normal">
+                                <Button variant="outline" class="w-full mx-6 justify-start text-left font-normal">
                                     {{ endDate ? formatDate(endDate) : 'Chọn ngày kết thúc' }}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent class="p-2 mx-6">
+                            <PopoverContent class="w-full p-2 mx-6">
                                 <Calendar v-model="endDate" placeholder="Chọn ngày kết thúc" />
                             </PopoverContent>
                         </Popover>
@@ -128,6 +128,34 @@
                     />
                     <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
                 </TabsContent>
+
+                <TabsContent value="yearly">
+                    <div class="flex items-center space-x-2 mt-4">
+                        <!-- Chọn Năm -->
+                        <Select v-model="selectedYear" class="w-[200px]">
+                            <SelectTrigger>
+                                <div
+                                    class="w-full p-0 text-left flex justify-between items-center cursor-pointer"
+                                    :class="selectedYear ? 'text-black' : 'text-gray-500'"
+                                >
+                                    {{ selectedYear ? `Năm ${selectedYear}` : 'Chọn năm' }}
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="year in years" :key="year" :value="String(year)">
+                                    {{ year }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <!-- Nút Thống Kê -->
+                        <Button @click="fetchStatisticYear">Thống kê</Button>
+                    </div>
+
+                    <!-- Hiển thị kết quả thống kê -->
+                    <StatisticYearly v-if="statisticYearlyData" :statisticYearlyData="statisticYearlyData" />
+                    <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
+                </TabsContent>
             </Tabs>
         </div>
     </div>
@@ -145,14 +173,16 @@ import { useToast } from 'vue-toastification';
 import StatisticDay from '@/views/StatisticDay.vue';
 import StatisticMonthly from '@/views/StatisticMonthly.vue';
 import StatisticQuarterly from '@/views/StatisticQuarterly.vue';
+import StatisticYearly from '@/views/StatisticYearly.vue';
 
-const selectedTab = ref('day'); // Dùng để theo dõi tab được chọn (day, month, etc.)
+// Dùng để theo dõi tab được chọn (day, month, etc.)
 const startDate = ref(null);
 const endDate = ref(null);
 
 const statisticDayData = ref(null);
 const statisticMonthlyData = ref(null);
 const statisticQuarterlyData = ref(null);
+const statisticYearlyData = ref(null);
 
 const months = [
     { label: 'Tháng 1', value: 1 },
@@ -171,6 +201,7 @@ const months = [
 const quarters = [1, 2, 3, 4];
 const years = Array.from({ length: 25 }, (_, i) => 2000 + i); // Tạo dãy năm từ 2020 đến 2029
 
+const selectedTab = ref('day');
 const selectedMonth = ref('');
 const selectedYear = ref('');
 const selectedQuarter = ref(null);
@@ -233,6 +264,34 @@ const fetchStatisticQuarter = async () => {
         }
         statisticQuarterlyData.value = data;
         console.log('statisticQuarterlyData.value: ', statisticQuarterlyData.value);
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+        toast.error('Không thể tải dữ liệu.');
+    }
+};
+
+const fetchStatisticYear = async () => {
+    const year = `${selectedYear.value}`;
+    console.log('year: ', year);
+    const toast = useToast();
+    try {
+        const user = JSON.parse(localStorage.getItem('userToken'));
+        const userToken = user.accessToken;
+        const res = await fetch(`http://localhost:3001/api/statistic/year/?year=${selectedYear.value}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${userToken}`,
+            },
+        });
+        const data = await res.json();
+        console.log('dataStatisticYear: ', data);
+        if (!data.success) {
+            toast.error(data.message);
+            return;
+        }
+        statisticYearlyData.value = data;
+        console.log('statisticYearlyData.value: ', statisticYearlyData.value);
     } catch (error) {
         console.error('Lỗi khi lấy dữ liệu:', error);
         toast.error('Không thể tải dữ liệu.');
