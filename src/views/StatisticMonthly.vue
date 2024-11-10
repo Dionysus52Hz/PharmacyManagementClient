@@ -69,7 +69,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="note in statisticDayData.resultsInput" :key="note.received_note_id">
+                        <tr v-for="note in statisticMonthlyData.resultsInput" :key="note.received_note_id">
                             <th
                                 scope="row"
                                 class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
@@ -91,18 +91,18 @@
                 <div class="grid grid-cols-3 gap-4">
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Cao Nhất: </span>
-                        <p class="text-xl">{{ formatCurrency(statisticDayData.maxPriceRowInput.price || 0) }}</p>
+                        <p class="text-xl">{{ formatCurrency(statisticMonthlyData.maxPriceRowInput.price || 0) }}</p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.minPriceRowInput.price || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.minPriceRowInput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Trung Bình: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.avgPriceInput || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.avgPriceInput || 0) }}
                         </p>
                     </div>
                 </div>
@@ -122,7 +122,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="note in statisticDayData.resultsOutput" :key="note.delivery_note_id">
+                        <tr v-for="note in statisticMonthlyData.resultsOutput" :key="note.delivery_note_id">
                             <th
                                 scope="row"
                                 class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
@@ -144,20 +144,20 @@
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Cao Nhất: </span>
                         <p class="text-xl">
-                            <!-- {{ formatCurrency(statisticDayData.maxPriceRowOutput.price || 0) | currency }} -->
-                            {{ formatCurrency(statisticDayData.maxPriceRowOutput.price || 0) }}
+                            <!-- {{ formatCurrency(statisticMonthlyData.maxPriceRowOutput.price || 0) | currency }} -->
+                            {{ formatCurrency(statisticMonthlyData.maxPriceRowOutput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Thấp Nhất: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.minPriceRowOutput.price || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.minPriceRowOutput.price || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Giá Trung Bình: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.avgPriceOutput || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.avgPriceOutput || 0) }}
                         </p>
                     </div>
                 </div>
@@ -167,19 +167,19 @@
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Tổng thu: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalPriceInput || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.totalPriceInput || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Tổng chi: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalPriceOutput || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.totalPriceOutput || 0) }}
                         </p>
                     </div>
                     <div class="flex items-center space-x-2 text-start">
                         <span class="text-lg font-semibold">Lợi nhuận: </span>
                         <p class="text-xl">
-                            {{ formatCurrency(statisticDayData.totalProfit || 0) }}
+                            {{ formatCurrency(statisticMonthlyData.totalProfit || 0) }}
                         </p>
                     </div>
                 </div>
@@ -194,7 +194,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 // Nhận dữ liệu thống kê theo ngày từ component cha
 const props = defineProps({
-    statisticDayData: {
+    statisticMonthlyData: {
         type: Object as () => Record<string, any> | null,
         default: () => ({}),
     },
@@ -214,8 +214,11 @@ function formatDate(date) {
     return `${day}/${month}/${year}`;
 }
 onMounted(() => {
-    console.log('statisticDayData: ', props.statisticDayData);
-    console.log(' {{ statisticDayData.maxPriceRowOutput.price }}: ', props.statisticDayData.maxPriceRowOutput.price);
+    console.log('statisticMonthlyData: ', props.statisticMonthlyData);
+    console.log(
+        ' {{ statisticMonthlyData.maxPriceRowOutput.price }}: ',
+        props.statisticMonthlyData.maxPriceRowOutput.price,
+    );
 });
 </script>
 

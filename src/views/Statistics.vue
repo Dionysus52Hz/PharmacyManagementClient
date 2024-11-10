@@ -40,7 +40,7 @@
                             </PopoverContent>
                         </Popover>
 
-                        <Button @click="fetchStatisticDay">Submit</Button>
+                        <Button @click="fetchStatisticDay">Thống kê</Button>
                     </div>
                     <StatisticDay v-if="statisticDayData" :statisticDayData="statisticDayData" />
                     <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
@@ -50,12 +50,12 @@
                     <div class="flex items-center space-x-2 mt-4">
                         <Select v-model="selectedMonth" class="w-[200px]">
                             <SelectTrigger>
-                                <Button
-                                    variant="outline"
-                                    class="w-full p-0 text-left flex justify-between items-center"
+                                <div
+                                    class="w-full p-0 text-left flex justify-between items-center cursor-pointer"
+                                    :class="selectedMonth ? 'text-black' : 'text-gray-500'"
                                 >
                                     {{ selectedMonth ? `Tháng ${selectedMonth}` : 'Chọn tháng' }}
-                                </Button>
+                                </div>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem v-for="month in months" :key="month.value" :value="String(month.value)">
@@ -66,9 +66,12 @@
 
                         <Select v-model="selectedYear" class="w-[200px]">
                             <SelectTrigger>
-                                <Button variant="outline" class="w-full text-left">
+                                <div
+                                    class="w-full p-0 text-left flex justify-between items-center cursor-pointer"
+                                    :class="selectedYear ? 'text-black' : 'text-gray-500'"
+                                >
                                     {{ selectedYear ? `Năm ${selectedYear}` : 'Chọn năm' }}
-                                </Button>
+                                </div>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem v-for="year in years" :key="year" :value="String(year)">
@@ -77,7 +80,7 @@
                             </SelectContent>
                         </Select>
 
-                        <Button @click="fetchStatisticMonth">Submit</Button>
+                        <Button @click="fetchStatisticMonth">Thống kê</Button>
                     </div>
                     <StatisticMonthly v-if="statisticMonthlyData" :statisticMonthlyData="statisticMonthlyData" />
                     <p v-else class="mt-4">Không có dữ liệu để hiển thị.</p>
@@ -97,9 +100,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/u
 import axios from 'axios';
 import { useToast } from 'vue-toastification';
 import StatisticDay from '@/views/StatisticDay.vue';
+import StatisticMonthly from '@/views/StatisticMonthly.vue';
 
-// const startDate = ref<Date | null>(null);
-// const endDate = ref<Date | null>(null);
 const selectedTab = ref('day'); // Dùng để theo dõi tab được chọn (day, month, etc.)
 const startDate = ref(null);
 const endDate = ref(null);
@@ -122,7 +124,7 @@ const months = [
     { label: 'Tháng 12', value: 12 },
 ];
 
-const years = Array.from({ length: 10 }, (_, i) => 2020 + i); // Tạo dãy năm từ 2020 đến 2029
+const years = Array.from({ length: 25 }, (_, i) => 2000 + i); // Tạo dãy năm từ 2020 đến 2029
 
 const selectedMonth = ref('');
 const selectedYear = ref('');
@@ -130,18 +132,39 @@ const selectedYear = ref('');
 console.log('selectedMonth: ', selectedMonth);
 console.log('selectedYear: ', selectedYear);
 
-// Hàm gọi API khi chọn tháng và năm
-const fetchStatisticMonth = () => {
+const fetchStatisticMonth = async () => {
     const monthYear = `${selectedMonth.value}-${selectedYear.value}`;
     console.log('Month-Year:', monthYear);
-    // Thực hiện gọi API hoặc logic xử lý thống kê theo tháng và năm
+
+    const toast = useToast();
+    try {
+        const user = JSON.parse(localStorage.getItem('userToken'));
+        const userToken = user.accessToken;
+        const res = await fetch(
+            `http://localhost:3001/api/statistic/month/?month=${selectedMonth.value}&year=${selectedYear.value}`,
+            {
+                method: 'GET', // Phương thức GET
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${userToken}`,
+                },
+            },
+        );
+        // Chuyển đổi phản hồi sang JSON
+        const data = await res.json();
+        console.log('dataStatisticMonth: ', data);
+        if (!data.success) {
+            toast.error(data.message);
+            return;
+        }
+        statisticMonthlyData.value = data;
+        console.log('statisticMonthlyData.value: ', statisticMonthlyData.value);
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu:', error);
+        toast.error('Không thể tải dữ liệu.');
+    }
 };
 
-// Hàm định dạng tháng và năm
-const formatMonth = (value) => {
-    return `${value ? value.month : 'MM'}/${value ? value.year : 'YYYY'}`;
-};
-// const statisticDayData = ref<Record<string, any> | null>(null);
 const formatDate = (date: Date | string | null) => {
     if (!date) return '';
     const d = new Date(date);
@@ -155,22 +178,7 @@ const formatDate = (date: Date | string | null) => {
     return `${year}-${month}-${day}`;
 };
 
-// const formatMonth = (date: Date | string | null) => {
-//     if (!date) return '';
-//     const d = new Date(date);
-
-//     // Đảm bảo ngày và tháng có 2 chữ số nếu cần
-//     const year = d.getFullYear();
-//     const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Tháng bắt đầu từ 0, cần +1
-//     const day = d.getDate().toString().padStart(2, '0');
-
-//     // Trả về định dạng yyyy/mm/dd
-//     return `${month}-${day}`;
-// };
-
-// Hàm gọi API để lấy thống kê theo ngày
 const fetchStatisticDay = async () => {
-    // Kiểm tra nếu không có giá trị startDate hoặc endDate
     if (!startDate.value || !endDate.value) {
         alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.');
         return;
