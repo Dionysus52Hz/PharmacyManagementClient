@@ -1,10 +1,8 @@
 <template>
    <aside
-      class="bg-[#fafafa] fixed top-0 h-dvh w-[20%] min-w-[288px] lg:block flex flex-col"
+      class="bg-[#fafafa] fixed top-0 h-dvh w-auto pr-10 lg:block flex flex-col"
    >
-      <div
-         class="bg-inherit fixed w-[20%] min-w-[288px] p-6 flex gap-x-[10px] items-center"
-      >
+      <div class="bg-inherit fixed w-full p-6 flex gap-x-[10px] items-center">
          <div class="logo bg-slate-300 w-6 aspect-square rounded"></div>
          <span class="text-sm font-bold">Untitled UI</span>
       </div>
