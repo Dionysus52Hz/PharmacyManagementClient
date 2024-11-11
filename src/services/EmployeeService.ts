@@ -2,9 +2,9 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axiosInstance from './APIService';
 import { getAccessToken } from '@/utils/token';
 
-class MedicineService {
+class EmployeeService {
    API: any;
-   constructor(baseURL = '/api/medicines') {
+   constructor(baseURL = '/api/user') {
       this.API = axiosInstance(baseURL);
       this.API.interceptors.request.use(
          async (config: AxiosRequestConfig) => {
@@ -65,25 +65,33 @@ class MedicineService {
       );
    }
 
-   async getAllMedicine() {
-      return (await this.API.get('/')).data;
+   async getAllEmployees() {
+      return (await this.API.get('/getAllUsers')).data;
    }
 
    async create(data: any) {
-      return (await this.API.post('/', data)).data;
+      return (await this.API.post('/createUser', data)).data;
    }
 
-   async getMedicine(id: string) {
-      return (await this.API.get(`/${id}`)).data;
+   async getEmployee(id: string) {
+      return (await this.API.get(`/getDetailUser/${id}`)).data;
    }
 
-   async updateMedicine(id: string, data: any) {
-      return (await this.API.put(`/${id}`, data)).data;
+   async updateEmployee(id: string, data: any) {
+      return (await this.API.put(`/updateUserFromAdmin/${id}`, data)).data;
    }
 
-   async deleteMedicine(id: string) {
-      return (await this.API.delete(`/${id}`)).data;
+   async deleteEmployee(id: string) {
+      return (await this.API.delete(`/deleteUser/${id}`)).data;
+   }
+
+   async lockEmployee(id: string) {
+      return (await this.API.put(`/lockUser/${id}`)).data;
+   }
+
+   async changePassword(data: any) {
+      return (await this.API.delete('changePassword', data)).data;
    }
 }
 
-export default new MedicineService();
+export default new EmployeeService();

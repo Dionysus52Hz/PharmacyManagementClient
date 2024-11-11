@@ -186,6 +186,7 @@
                   class: 'bg-emerald-600 text-white',
                });
                medicineFormRef.value.resetForm();
+               medicineData.value = undefined;
                await getAllMedicine();
             }
          } catch (error: any) {

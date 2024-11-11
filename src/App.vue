@@ -41,8 +41,9 @@
    ></AppBar>
 
    <main
-      class="ml-[220px] h-dvh bg-white pt-[80px]"
+      class="h-dvh bg-white pt-[80px]"
       :style="`--customMarginLeft:${marginLeftForMainTag}px`"
+      :class="{ 'ml-[220px]': isLoggedIn }"
    >
       <router-view></router-view>
    </main>
