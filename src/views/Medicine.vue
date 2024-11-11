@@ -18,6 +18,13 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số thuốc</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+                     <Button
+                        variant="secondary"
+                        @click="getAllMedicine()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -42,7 +49,7 @@
                <template v-slot:action-buttons>
                   <DialogTrigger asChild>
                      <Button>
-                        <Plus class="w-5 h-5" />
+                        <Plus class="w-5 h-5 mr-2" />
                         Thêm thuốc
                      </Button>
                   </DialogTrigger>
@@ -62,7 +69,11 @@
             </DialogHeader>
 
             <div class="grid gap-4 py-4 px-6 overflow-y-auto">
-               <MedicineForm ref="medicineFormRef"> </MedicineForm>
+               <MedicineForm
+                  ref="medicineFormRef"
+                  @send-value="handleMedicineData"
+               >
+               </MedicineForm>
             </div>
 
             <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
@@ -98,25 +109,6 @@
       DialogTrigger,
       DialogClose,
    } from '@/components/ui/dialog';
-   import type { Medicine } from '@/components/medicine/schema';
-   import { ref, onMounted } from 'vue';
-   import { columns } from '@/components/medicine/columns';
-   import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/components/medicine/data';
-   import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
-   import MedicineForm from '@/components/medicine/MedicineForm.vue';
-
-   const data = ref<Medicine[]>([]);
-
-   async function getData(): Promise<Medicine[]> {
-      return await excelToJson(excelURL, 'Medicine');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-   });
 
    import {
       Select,
@@ -126,6 +118,27 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+   import type { Medicine } from '@/components/medicine/schema';
+   import { ref, onMounted } from 'vue';
+   import { columns } from '@/components/medicine/columns';
+   import { DataTable } from '@/components/ui/data-table';
+   import { Button } from '@/components/ui/button';
+   import { Plus, ListRestart } from 'lucide-vue-next';
+   import MedicineForm from '@/components/medicine/MedicineForm.vue';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import MedicineService from '@/services/MedicineService';
+   const { toast } = useToast();
+   console.log(columns);
+
+   const data = ref<Medicine[]>([]);
+
+   const getAllMedicine = async () => {
+      try {
+         data.value = await MedicineService.getAllMedicine();
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    const MedicineFiltersColumn = [
       {
@@ -157,11 +170,44 @@
    const filteredColumn = ref<string>(MedicineFiltersColumn[0].value);
    const medicineFormRef = ref<InstanceType<typeof MedicineForm> | null>(null);
 
-   const addMedicine = () => {
+   const medicineData = ref<Medicine>();
+   const handleMedicineData = (data: Medicine) => {
+      medicineData.value = data;
+   };
+
+   const addMedicine = async () => {
       if (medicineFormRef.value) {
-         medicineFormRef.value.onSubmit();
+         try {
+            await medicineFormRef.value.onSubmit();
+            if (medicineData.value) {
+               await MedicineService.create(medicineData.value);
+               toast({
+                  description: 'Đã thêm thuốc mới.',
+                  class: 'bg-emerald-600 text-white',
+               });
+               medicineFormRef.value.resetForm();
+               await getAllMedicine();
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.data.code === 'ER_DUP_ENTRY') {
+               toast({
+                  variant: 'destructive',
+                  description: 'Mã thuốc đã tồn tại!',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
+
+   onMounted(async () => {
+      await getAllMedicine();
+   });
 </script>
 
 <style scoped></style>

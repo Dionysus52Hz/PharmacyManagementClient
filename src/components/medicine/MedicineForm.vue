@@ -13,6 +13,7 @@
 
                <FormControl>
                   <Input
+                     :disabled="props.disabledInput"
                      type="text"
                      placeholder="Nhập mã thuốc"
                      v-bind="componentField"
@@ -154,6 +155,74 @@
                <FormMessage />
             </FormItem>
          </FormField>
+
+         <FormField
+            v-slot="{ value }"
+            name="quantity"
+         >
+            <FormItem v-auto-animate>
+               <FormLabel>Số lượng</FormLabel>
+
+               <NumberField
+                  class="gap-2"
+                  :min="1"
+                  :model-value="value"
+                  @update:model-value="
+                     (v) => {
+                        if (v) {
+                           setFieldValue('quantity', v);
+                        } else {
+                           setFieldValue('quantity', undefined);
+                        }
+                     }
+                  "
+               >
+                  <NumberFieldContent>
+                     <NumberFieldDecrement />
+                     <FormControl>
+                        <NumberFieldInput />
+                     </FormControl>
+                     <NumberFieldIncrement />
+                  </NumberFieldContent>
+               </NumberField>
+
+               <FormMessage />
+            </FormItem>
+         </FormField>
+
+         <FormField
+            v-slot="{ value }"
+            name="price"
+         >
+            <FormItem v-auto-animate>
+               <FormLabel>Giá</FormLabel>
+
+               <NumberField
+                  class="gap-2"
+                  :min="1"
+                  :model-value="value"
+                  @update:model-value="
+                     (v) => {
+                        if (v) {
+                           setFieldValue('price', v);
+                        } else {
+                           setFieldValue('price', undefined);
+                        }
+                     }
+                  "
+               >
+                  <NumberFieldContent>
+                     <NumberFieldDecrement />
+                     <FormControl>
+                        <NumberFieldInput />
+                     </FormControl>
+                     <NumberFieldIncrement />
+                  </NumberFieldContent>
+               </NumberField>
+
+               <FormMessage />
+            </FormItem>
+         </FormField>
       </form>
    </div>
 </template>
@@ -174,6 +243,13 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+   import {
+      NumberField,
+      NumberFieldContent,
+      NumberFieldDecrement,
+      NumberFieldIncrement,
+      NumberFieldInput,
+   } from '@/components/ui/number-field';
    import { Input } from '@/components/ui/input';
    import { vAutoAnimate } from '@formkit/auto-animate/vue';
 
@@ -238,23 +314,44 @@
          category_id: z.string({
             required_error: 'Vui lòng chọn loại thuốc',
          }),
+         quantity: z
+            .number({
+               required_error: 'Số lượng không thể để trống',
+               invalid_type_error: 'Số lượng không hợp lệ',
+            })
+            .min(1, { message: 'Số lượng phải lớn hơn 0' }),
+         price: z
+            .number({
+               required_error: 'Đơn giá không thể để trống',
+               invalid_type_error: 'Đơn giá không hợp lệ',
+            })
+            .min(1, { message: 'Đơn giá phải lớn hơn 0' }),
       })
    );
 
    const props = defineProps<{
       defaultValues?: Medicine;
+      disabledInput?: boolean;
    }>();
 
-   const { handleSubmit } = useForm({
+   const { handleSubmit, setFieldValue, resetForm } = useForm({
       validationSchema: formSchema,
       initialValues: props.defaultValues || null,
    });
 
-   const onSubmit = handleSubmit((values) => {
-      console.log(values);
+   const emit = defineEmits({
+      sendValue: (payload) => {
+         if (payload) return true;
+         else return false;
+      },
+   });
+
+   const onSubmit = handleSubmit(async (values) => {
+      emit('sendValue', values);
    });
 
    defineExpose({
       onSubmit,
+      resetForm,
    });
 </script>
