@@ -7,6 +7,8 @@ export const medicineSchema = z.object({
    supplier_id: z.string(),
    effects: z.string(),
    category_id: z.string(),
+   quantity: z.number(),
+   price: z.number(),
 });
 
 export type Medicine = z.infer<typeof medicineSchema>;

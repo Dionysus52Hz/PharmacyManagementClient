@@ -99,6 +99,8 @@
       DataTableToolbar,
    } from '@/components/ui/data-table';
 
+   const emit = defineEmits(['reset-data']);
+
    const props = defineProps<{
       columns: ColumnDef<TData, TValue>[];
       data: TData[];

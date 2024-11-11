@@ -43,9 +43,11 @@
 
          <div class="grid gap-4 py-4 px-6 overflow-y-auto">
             <MedicineForm
-               v-if="actionState === 'add' || actionState === 'update'"
+               v-if="actionState === 'update'"
                ref="medicineFormRef"
                :default-values="props.row.original"
+               @send-value="handleMedicineData"
+               :disabled-input="true"
             >
             </MedicineForm>
             <p v-if="actionState === 'delete'">
@@ -63,14 +65,16 @@
                Cập nhật
             </Button>
 
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteMedicine(props.row.original.medicine_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
+            <DialogClose asChild>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="deleteMedicine(props.row.original.medicine_id)"
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
+            </DialogClose>
             <DialogClose as-child>
                <Button
                   variant="outline"
@@ -108,6 +112,9 @@
    import type { Medicine } from './schema';
    import MedicineForm from '@/components/medicine/MedicineForm.vue';
    import { computed, ref } from 'vue';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import MedicineService from '@/services/MedicineService';
+   const { toast } = useToast();
 
    interface DataTableRowActionProps {
       row: Row<Medicine>;
@@ -134,12 +141,64 @@
       }
    });
 
-   const updateMedicine = () => {
+   const medicineData = ref<Medicine>();
+   const handleMedicineData = (data: Medicine) => {
+      medicineData.value = data;
+   };
+
+   const updateMedicine = async () => {
       if (medicineFormRef.value) {
-         medicineFormRef.value.onSubmit();
+         try {
+            await medicineFormRef.value.onSubmit();
+
+            if (medicineData.value) {
+               const medicineId: string = medicineData.value.medicine_id;
+               await MedicineService.updateMedicine(
+                  medicineId,
+                  medicineData.value
+               );
+               toast({
+                  description: 'Cập nhật thông tin thuốc thành công.',
+                  class: 'bg-emerald-600 text-white',
+               });
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.data.code === 'ER_DUP_ENTRY') {
+               toast({
+                  variant: 'destructive',
+                  description: 'Mã thuốc đã tồn tại!',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
-   const deleteMedicine = (medicineId: string) => {
-      console.log(medicineId);
+
+   const deleteMedicine = async (medicineId: string) => {
+      try {
+         await MedicineService.deleteMedicine(medicineId);
+         toast({
+            description: 'Xoá thông tin thuốc thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error: any) {
+         console.log(error);
+         if (error.response.data.code === 'ER_DUP_ENTRY') {
+            toast({
+               variant: 'destructive',
+               description: 'Mã thuốc đã tồn tại!',
+            });
+         } else {
+            toast({
+               variant: 'destructive',
+               description: 'Xảy ra lỗi không xác định.',
+            });
+         }
+      }
    };
 </script>

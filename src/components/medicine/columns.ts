@@ -48,12 +48,32 @@ export const columns: ColumnDef<Medicine>[] = [
       },
       cell: ({ row }) => h('div', { class: '' }, row.getValue('category_id')),
    },
+   {
+      accessorKey: 'quantity',
+      header: ({ column }) => {
+         return h(DataTableColumnHeader, { column, title: 'Số lượng' });
+      },
+      cell: ({ row }) => h('div', { class: '' }, row.getValue('quantity')),
+   },
+   {
+      accessorKey: 'price',
+      header: ({ column }) => {
+         return h(DataTableColumnHeader, { column, title: 'Giá' });
+      },
+      cell: ({ row }) => h('div', { class: '' }, row.getValue('price')),
+   },
 
    {
       id: 'actions',
       enableHiding: false,
       cell: ({ row }) => {
-         return h('div', { class: 'relative' }, h(DataTableDropDown, { row }));
+         return h(
+            'div',
+            { class: 'relative' },
+            h(DataTableDropDown, {
+               row,
+            })
+         );
       },
    },
 ];

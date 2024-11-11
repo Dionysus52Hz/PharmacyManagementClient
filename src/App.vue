@@ -41,11 +41,12 @@
    ></AppBar>
 
    <main
-      class="ml-[var(--customMarginLeft)] h-dvh bg-white pt-[80px]"
+      class="ml-[220px] h-dvh bg-white pt-[80px]"
       :style="`--customMarginLeft:${marginLeftForMainTag}px`"
    >
       <router-view></router-view>
    </main>
+   <Toaster />
 </template>
 
 <script setup lang="ts">
@@ -60,15 +61,27 @@
       SheetTitle,
       SheetTrigger,
    } from '@/components/ui/sheet';
+   import Toaster from '@/components/ui/toast/Toaster.vue';
    import SideNavigationMenu from '@/components/SideNavigationMenu.vue';
    import AppBar from '@/components/AppBar.vue';
    import Header from '@/components/Header.vue';
-   import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
-   import { useRoute } from 'vue-router';
+   import {
+      computed,
+      onBeforeMount,
+      onMounted,
+      ref,
+      useTemplateRef,
+      watch,
+   } from 'vue';
+   import {
+      onBeforeRouteLeave,
+      onBeforeRouteUpdate,
+      useRoute,
+   } from 'vue-router';
    import { useCurrentPageStore } from './stores/currentPageStore';
 
    const sideNavigationRef = useTemplateRef('sideNavigation');
-   const marginLeftForMainTag = ref(0);
+   const marginLeftForMainTag = ref(220);
    const route = useRoute();
    const isLoggedIn = computed(() => {
       return (
@@ -105,6 +118,7 @@
       ) {
          marginLeftForMainTag.value = 0;
       } else {
+         console.log(newRoute.name);
          marginLeftForMainTag.value =
             sideNavigationRef.value?.$el?.offsetWidth || 0;
          window.addEventListener('resize', () => {
