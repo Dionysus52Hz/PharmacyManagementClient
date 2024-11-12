@@ -72,6 +72,8 @@
                <MedicineForm
                   ref="medicineFormRef"
                   @send-value="handleMedicineData"
+                  :disabled-input="true"
+                  :default-values="defaultValues"
                >
                </MedicineForm>
             </div>
@@ -138,6 +140,17 @@
       } catch (error) {
          console.log(error);
       }
+   };
+
+   const defaultValues: Medicine = {
+      medicine_id: '',
+      name: '',
+      supplier_id: '',
+      manufacture_id: '',
+      effects: '',
+      quantity: 1,
+      price: 0,
+      category_id: '',
    };
 
    const MedicineFiltersColumn = [

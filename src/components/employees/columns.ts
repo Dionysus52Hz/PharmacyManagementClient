@@ -3,7 +3,7 @@ import { h } from 'vue';
 import { DataTableColumnHeader } from '@/components/ui/data-table';
 import DataTableDropDown from '@/components/employees/DataTableDropDown.vue';
 import type { Employee } from './schema';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const vietnameseCollator = new Intl.Collator('vi', { sensitivity: 'base' });
 const sortingFn = (rowA: any, rowB: any, columnId: string) => {
@@ -73,18 +73,19 @@ export const columns: ColumnDef<Employee>[] = [
             title: 'Trạng thái tài khoản',
          });
       },
-      cell: ({ row }) =>
-         h(
+      cell: ({ row }) => {
+         return h(
             'div',
             { class: '' },
             row.getValue('isLocked') === 0
                ? h(
-                    Button,
+                    Badge,
                     { class: 'bg-emerald-600 text-white' },
                     'Đang hoạt động'
                  )
-               : h(Button, { variant: 'destructive' }, 'Đã khoá')
-         ),
+               : h(Badge, { variant: 'destructive' }, 'Đã khoá')
+         );
+      },
       sortingFn: sortingFn,
    },
    {

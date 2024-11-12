@@ -46,6 +46,8 @@
                v-if="actionState === 'add' || actionState === 'update'"
                ref="supplierFormRef"
                :default-values="props.row.original"
+               @send-value="handleSupplierData"
+               :disabled-input="true"
             >
             </SupplierForm>
             <p v-if="actionState === 'delete'">
@@ -55,23 +57,22 @@
          </div>
 
          <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
-            <Button
-               v-if="actionState === 'update'"
-               @click="updateSupplier"
-               class="w-full"
-            >
-               Cập nhật
-            </Button>
-
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteSupplier(props.row.original.supplier_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
             <DialogClose as-child>
+               <Button
+                  v-if="actionState === 'update'"
+                  @click="updateSupplier"
+                  class="w-full"
+               >
+                  Cập nhật
+               </Button>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="deleteSupplier(props.row.original.supplier_id)"
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
                <Button
                   variant="outline"
                   class="w-full"
@@ -108,6 +109,9 @@
    import type { Supplier } from './schema';
    import SupplierForm from './SupplierForm.vue';
    import { computed, ref } from 'vue';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import SupplierService from '@/services/SupplierService';
+   const { toast } = useToast();
 
    interface DataTableRowActionProps {
       row: Row<Supplier>;
@@ -130,16 +134,70 @@
          case 'update':
             return 'Sửa thông tin nhà cung cấp';
          case 'delete':
-            return 'Xoá thông tin nhà cung cấp';
+            return 'Xoá nhà cung cấp';
       }
    });
 
-   const updateSupplier = () => {
+   const supplierData = ref<Supplier>();
+   const handleSupplierData = (data: Supplier) => {
+      supplierData.value = data;
+   };
+
+   const updateSupplier = async () => {
       if (supplierFormRef.value) {
-         supplierFormRef.value.onSubmit();
+         try {
+            await supplierFormRef.value.onSubmit();
+
+            if (supplierData.value) {
+               const supplierId: string = supplierData.value.supplier_id;
+               console.log(supplierId);
+               await SupplierService.updateSupplier(
+                  supplierId,
+                  supplierData.value
+               );
+               toast({
+                  description: 'Cập nhật thông tin nhà cung cấp thành công.',
+                  class: 'bg-emerald-600 text-white',
+               });
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.statusText === 'Forbidden') {
+               toast({
+                  variant: 'destructive',
+                  description:
+                     'Chỉ nhân viên mới có quyền thay đổi thông tin nhà cung cấp',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
-   const deleteSupplier = (supplierId: string) => {
-      console.log(supplierId);
+
+   const deleteSupplier = async (supplierId: string) => {
+      try {
+         await SupplierService.deleteSupplier(supplierId);
+         toast({
+            description: 'Xoá nhà cung cấp thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error: any) {
+         console.log(error);
+         if (error.response.statusText === 'Forbidden') {
+            toast({
+               variant: 'destructive',
+               description: 'Chỉ nhân viên mới có quyền xoá nhà cung cấp',
+            });
+         } else {
+            toast({
+               variant: 'destructive',
+               description: 'Xảy ra lỗi không xác định.',
+            });
+         }
+      }
    };
 </script>

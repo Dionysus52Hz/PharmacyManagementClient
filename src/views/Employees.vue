@@ -63,7 +63,7 @@
             class="grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]"
          >
             <DialogHeader class="p-6 pb-0">
-               <DialogTitle>Thêm thuốc mới</DialogTitle>
+               <DialogTitle>Thêm nhân viên mới</DialogTitle>
 
                <DialogDescription> </DialogDescription>
             </DialogHeader>
@@ -191,6 +191,14 @@
                toast({
                   variant: 'destructive',
                   description: 'Chỉ quản lý mới có quyền thêm nhân viên mới',
+               });
+            } else if (
+               error.response.data.message ===
+               'Username đã tồn tại. Hãy đăng kí username khác'
+            ) {
+               toast({
+                  variant: 'destructive',
+                  description: 'Tên đăng nhập đã tồn tại',
                });
             } else {
                toast({

@@ -46,6 +46,8 @@
                v-if="actionState === 'add' || actionState === 'update'"
                ref="medicineCategoryFormRef"
                :default-values="props.row.original"
+               :disabled-input="true"
+               @send-value="handleCategoryData"
             >
             </MedicineCategoryForm>
             <p v-if="actionState === 'delete'">
@@ -57,21 +59,21 @@
          <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
             <Button
                v-if="actionState === 'update'"
-               @click="updateMedicineCategory"
+               @click="updateCategory"
                class="w-full"
             >
                Cập nhật
             </Button>
 
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteMedicineCategory(props.row.original.category_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
             <DialogClose as-child>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="deleteCategory(props.row.original.category_id)"
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
                <Button
                   variant="outline"
                   class="w-full"
@@ -108,6 +110,9 @@
    import type { MedicineCategory } from './schema';
    import MedicineCategoryForm from './MedicineCategoryForm.vue';
    import { computed, ref } from 'vue';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import MedicineCategoryService from '@/services/MedicineCategoryService';
+   const { toast } = useToast();
 
    interface DataTableRowActionProps {
       row: Row<MedicineCategory>;
@@ -136,12 +141,66 @@
       }
    });
 
-   const updateMedicineCategory = () => {
+   const categoryData = ref<MedicineCategory>();
+   const handleCategoryData = (data: MedicineCategory) => {
+      categoryData.value = data;
+   };
+
+   const updateCategory = async () => {
       if (medicineCategoryFormRef.value) {
-         medicineCategoryFormRef.value.onSubmit();
+         try {
+            await medicineCategoryFormRef.value.onSubmit();
+
+            if (categoryData.value) {
+               const categoryId: string = categoryData.value.category_id;
+               console.log(categoryId);
+               await MedicineCategoryService.updateMedicineCategory(
+                  categoryId,
+                  categoryData.value
+               );
+               toast({
+                  description: 'Cập nhật thông tin loại thuốc thành công.',
+                  class: 'bg-emerald-600 text-white',
+               });
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.statusText === 'Forbidden') {
+               toast({
+                  variant: 'destructive',
+                  description:
+                     'Chỉ nhân viên mới có quyền thay đổi thông tin loại thuốc',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
-   const deleteMedicineCategory = (medicineCategoryId: string) => {
-      console.log(medicineCategoryId);
+
+   const deleteCategory = async (categoryId: string) => {
+      try {
+         await MedicineCategoryService.deleteMedicineCategory(categoryId);
+         toast({
+            description: 'Xoá loại thuốc thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error: any) {
+         console.log(error);
+         if (error.response.statusText === 'Forbidden') {
+            toast({
+               variant: 'destructive',
+               description: 'Chỉ nhân viên mới có quyền xoá loại thuốc',
+            });
+         } else {
+            toast({
+               variant: 'destructive',
+               description: 'Xảy ra lỗi không xác định.',
+            });
+         }
+      }
    };
 </script>

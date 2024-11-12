@@ -13,7 +13,10 @@
 
                <FormControl>
                   <Input
-                     :disabled="props.disabledInput"
+                     :disabled="
+                        props.disabledInput &&
+                        props.defaultValues?.medicine_id !== ''
+                     "
                      type="text"
                      placeholder="Nhập mã thuốc"
                      v-bind="componentField"
@@ -165,6 +168,7 @@
 
                <NumberField
                   class="gap-2"
+                  :disabled="props.disabledInput"
                   :min="1"
                   :model-value="value"
                   @update:model-value="
@@ -263,22 +267,24 @@
    import type { Supplier } from '@/components/suppliers/schema';
    import type { MedicineCategory } from '@/components/medicine-categories/schema';
    import { excelToJson } from '@/utils/data';
+   import ManufacturerService from '@/services/ManufacturerService';
+   import SupplierService from '@/services/SupplierService';
+   import MedicineCategoryService from '@/services/MedicineCategoryService';
 
    const manufacturersSelection = ref<Manufacturer[]>([]);
    const suppliersSelection = ref<Supplier[]>([]);
    const medicineCategoriesSelection = ref<MedicineCategory[]>([]);
 
    async function getManufacturersData(): Promise<Manufacturer[]> {
-      return await excelToJson(excelURL, 'Manufacturers');
+      return (await ManufacturerService.getAllManufacturers()).data;
    }
    async function getSuppliersData(): Promise<Supplier[]> {
-      return await excelToJson(excelURL, 'Suppliers');
+      return (await SupplierService.getAllSuppliers()).data;
    }
    async function getMedicineCategoriesData(): Promise<MedicineCategory[]> {
-      return await excelToJson(excelURL, 'Medicine_Categories');
+      return (await MedicineCategoryService.getAllMedicineCategories()).data;
    }
 
-   const excelURL = 'src/Database.xlsx';
    onMounted(async () => {
       manufacturersSelection.value = await getManufacturersData();
       suppliersSelection.value = await getSuppliersData();
@@ -347,6 +353,9 @@
    });
 
    const onSubmit = handleSubmit(async (values) => {
+      if (!props.defaultValues) {
+         values = { ...values, quantity: 0 };
+      }
       emit('sendValue', values);
    });
 

@@ -18,6 +18,13 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số loại</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+                     <Button
+                        variant="secondary"
+                        @click="getAllCategories()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -62,13 +69,16 @@
             </DialogHeader>
 
             <div class="grid gap-4 py-4 px-6 overflow-y-auto">
-               <MedicineCategoryForm ref="medicineCategoryFormRef">
+               <MedicineCategoryForm
+                  ref="medicineCategoryFormRef"
+                  @send-value="handleCategoryData"
+               >
                </MedicineCategoryForm>
             </div>
 
             <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
                <Button
-                  @click="addMedicineCategory"
+                  @click="addCategory"
                   class="w-full"
                >
                   Xác nhận
@@ -100,7 +110,7 @@
       DialogClose,
    } from '@/components/ui/dialog';
    import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
+   import { Plus, ListRestart } from 'lucide-vue-next';
 
    import { ref, onMounted } from 'vue';
 
@@ -108,18 +118,11 @@
    import type { MedicineCategory } from '@/components/medicine-categories/schema';
    import MedicineCategoryForm from '@/components/medicine-categories/MedicineCategoryForm.vue';
    import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/utils/data';
+   import MedicineCategoryService from '@/services/MedicineCategoryService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   const { toast } = useToast();
 
    const data = ref<MedicineCategory[]>([]);
-
-   async function getData(): Promise<MedicineCategory[]> {
-      return await excelToJson(excelURL, 'Medicine_Categories');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-   });
 
    import {
       Select,
@@ -129,6 +132,17 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+
+   const getAllCategories = async () => {
+      try {
+         data.value = (
+            await MedicineCategoryService.getAllMedicineCategories()
+         ).data;
+         console.log(data.value);
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    const MedicineFiltersColumn = [
       {
@@ -150,11 +164,45 @@
       typeof MedicineCategoryForm
    > | null>(null);
 
-   const addMedicineCategory = () => {
+   const categoryData = ref<MedicineCategory>();
+   const handleCategoryData = (data: MedicineCategory) => {
+      categoryData.value = data;
+   };
+
+   const addCategory = async () => {
       if (medicineCategoryFormRef.value) {
-         medicineCategoryFormRef.value.onSubmit();
+         try {
+            await medicineCategoryFormRef.value.onSubmit();
+            if (categoryData.value) {
+               await MedicineCategoryService.create(categoryData.value);
+               toast({
+                  description: 'Đã thêm loại thuốc mới.',
+                  class: 'bg-emerald-600 text-white',
+               });
+               medicineCategoryFormRef.value.resetForm();
+               categoryData.value = undefined;
+               await getAllCategories();
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.data.code === 'ER_DUP_ENTRY') {
+               toast({
+                  variant: 'destructive',
+                  description: 'Mã loại thuốc đã tồn tại!',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
+
+   onMounted(async () => {
+      await getAllCategories();
+   });
 </script>
 
 <style scoped></style>

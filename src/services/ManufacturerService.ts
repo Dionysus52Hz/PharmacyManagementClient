@@ -2,9 +2,9 @@ import { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axiosInstance from './APIService';
 import { getAccessToken } from '@/utils/token';
 
-class SupplierService {
+class ManufacturerService {
    API: any;
-   constructor(baseURL = '/api/suppliers') {
+   constructor(baseURL = '/api/manufacturers') {
       this.API = axiosInstance(baseURL);
       this.API.interceptors.request.use(
          async (config: AxiosRequestConfig) => {
@@ -65,7 +65,7 @@ class SupplierService {
       );
    }
 
-   async getAllSuppliers() {
+   async getAllManufacturers() {
       return (await this.API.get('/')).data;
    }
 
@@ -73,17 +73,17 @@ class SupplierService {
       return (await this.API.post('/', data)).data;
    }
 
-   async getSupplier(id: string) {
+   async getManufacturer(id: string) {
       return (await this.API.get(`/${id}`)).data;
    }
 
-   async updateSupplier(id: string, data: any) {
+   async updateManufacturer(id: string, data: any) {
       return (await this.API.put(`/${id}`, data)).data;
    }
 
-   async deleteSupplier(id: string) {
+   async deleteManufacturer(id: string) {
       return (await this.API.delete(`/${id}`)).data;
    }
 }
 
-export default new SupplierService();
+export default new ManufacturerService();

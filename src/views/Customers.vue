@@ -107,18 +107,11 @@
    import type { Customer } from '@/components/customers/schema';
    import CustomerForm from '@/components/customers/CustomerForm.vue';
    import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/utils/data';
+   import CustomerService from '@/services/CustomerService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   const { toast } = useToast();
 
    const data = ref<Customer[]>([]);
-
-   async function getData(): Promise<Customer[]> {
-      return await excelToJson(excelURL, 'Customers');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-   });
 
    import {
       Select,
@@ -128,6 +121,15 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+
+   const getAllCustomers = async () => {
+      try {
+         data.value = (await CustomerService.getAllCustomers()).data;
+         console.log(data.value);
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    const CustomersFiltersColumn = [
       {
@@ -151,11 +153,45 @@
    const filteredColumn = ref<string>(CustomersFiltersColumn[0].value);
    const customerFormRef = ref<InstanceType<typeof CustomerForm> | null>(null);
 
-   const addCustomer = () => {
-      if (customerFormRef.value) {
-         customerFormRef.value.onSubmit();
-      }
+   const customerData = ref<Customer>();
+   const handleCustomerData = (data: Customer) => {
+      customerData.value = data;
    };
+
+   // const addCustomer = async () => {
+   //    if (customerFormRef.value) {
+   //       try {
+   //          await customerFormRef.value.onSubmit();
+   //          if (customerData.value) {
+   //             await CustomerService.create(customerData.value);
+   //             toast({
+   //                description: 'Đã thêm khách hàng mới.',
+   //                class: 'bg-emerald-600 text-white',
+   //             });
+   //             customerFormRef.value.resetForm();
+   //             customerData.value = undefined;
+   //             await getAllCategories();
+   //          }
+   //       } catch (error: any) {
+   //          console.log(error);
+   //          if (error.response.data.code === 'ER_DUP_ENTRY') {
+   //             toast({
+   //                variant: 'destructive',
+   //                description: 'Mã loại thuốc đã tồn tại!',
+   //             });
+   //          } else {
+   //             toast({
+   //                variant: 'destructive',
+   //                description: 'Xảy ra lỗi không xác định.',
+   //             });
+   //          }
+   //       }
+   //    }
+   // };
+
+   onMounted(async () => {
+      await getAllCustomers();
+   });
 </script>
 
 <style scoped></style>

@@ -16,6 +16,7 @@
                      type="text"
                      placeholder="Nhập mã loại thuốc"
                      v-bind="componentField"
+                     :disabled="props.disabledInput"
                   />
                </FormControl>
 
@@ -103,18 +104,28 @@
 
    const props = defineProps<{
       defaultValues?: MedicineCategory;
+      disabledInput?: boolean;
    }>();
 
-   const { handleSubmit } = useForm({
+   const { handleSubmit, resetForm } = useForm({
       validationSchema: formSchema,
       initialValues: props.defaultValues || null,
    });
 
+   const emit = defineEmits({
+      sendValue: (payload) => {
+         if (payload) return true;
+         else return false;
+      },
+   });
+
    const onSubmit = handleSubmit((values) => {
       console.log(values);
+      emit('sendValue', values);
    });
 
    defineExpose({
       onSubmit,
+      resetForm,
    });
 </script>

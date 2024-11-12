@@ -18,6 +18,13 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số nhà cung cấp</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+                     <Button
+                        variant="secondary"
+                        @click="getAllSuppliers()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -62,18 +69,21 @@
             </DialogHeader>
 
             <div class="grid gap-4 py-4 px-6 overflow-y-auto">
-               <SupplierForm ref="supplierFormRef"> </SupplierForm>
+               <SupplierForm
+                  ref="supplierFormRef"
+                  @send-value="handleSupplierData"
+               >
+               </SupplierForm>
             </div>
 
             <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
-               <Button
-                  @click="addSupplier"
-                  class="w-full"
-               >
-                  Xác nhận
-               </Button>
-
                <DialogClose as-child>
+                  <Button
+                     @click="addSupplier"
+                     class="w-full"
+                  >
+                     Xác nhận
+                  </Button>
                   <Button
                      variant="outline"
                      class="w-full"
@@ -99,7 +109,7 @@
       DialogClose,
    } from '@/components/ui/dialog';
    import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
+   import { Plus, ListRestart } from 'lucide-vue-next';
 
    import { ref, onMounted } from 'vue';
 
@@ -107,18 +117,11 @@
    import type { Supplier } from '@/components/suppliers/schema';
    import SupplierForm from '@/components/suppliers/SupplierForm.vue';
    import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/utils/data';
+   import SupplierService from '@/services/SupplierService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   const { toast } = useToast();
 
    const data = ref<Supplier[]>([]);
-
-   async function getData(): Promise<Supplier[]> {
-      return await excelToJson(excelURL, 'Suppliers');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-   });
 
    import {
       Select,
@@ -128,6 +131,15 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+
+   const getAllSuppliers = async () => {
+      try {
+         data.value = (await SupplierService.getAllSuppliers()).data;
+         console.log(data.value);
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    const SuppliersFiltersColumn = [
       {
@@ -151,11 +163,45 @@
    const filteredColumn = ref<string>(SuppliersFiltersColumn[0].value);
    const supplierFormRef = ref<InstanceType<typeof SupplierForm> | null>(null);
 
-   const addSupplier = () => {
+   const supplierData = ref<Supplier>();
+   const handleSupplierData = (data: Supplier) => {
+      supplierData.value = data;
+   };
+
+   const addSupplier = async () => {
       if (supplierFormRef.value) {
-         supplierFormRef.value.onSubmit();
+         try {
+            await supplierFormRef.value.onSubmit();
+            if (supplierData.value) {
+               await SupplierService.create(supplierData.value);
+               toast({
+                  description: 'Đã thêm nhà cung cấp mới.',
+                  class: 'bg-emerald-600 text-white',
+               });
+               supplierFormRef.value.resetForm();
+               supplierData.value = undefined;
+               await getAllSuppliers();
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.data.code === 'ER_DUP_ENTRY') {
+               toast({
+                  variant: 'destructive',
+                  description: 'Mã nhà cung cấp đã tồn tại!',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
+
+   onMounted(async () => {
+      await getAllSuppliers();
+   });
 </script>
 
 <style scoped></style>

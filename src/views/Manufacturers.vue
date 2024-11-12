@@ -18,6 +18,13 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số hãng</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+                     <Button
+                        variant="secondary"
+                        @click="getAllManufacturers()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -29,7 +36,7 @@
                      <SelectContent class="max-h-[240px]">
                         <SelectGroup>
                            <SelectItem
-                              v-for="filter in MedicineFiltersColumn"
+                              v-for="filter in ManufacturerFiltersColumn"
                               :value="filter.value"
                            >
                               {{ filter.title }}
@@ -62,7 +69,11 @@
             </DialogHeader>
 
             <div class="grid gap-4 py-4 px-6 overflow-y-auto">
-               <ManufacturerForm ref="manufacturerFormRef"> </ManufacturerForm>
+               <ManufacturerForm
+                  ref="manufacturerFormRef"
+                  @send-value="handleManufacturerData"
+               >
+               </ManufacturerForm>
             </div>
 
             <DialogFooter class="flex !flex-col p-6 pt-2 gap-y-4">
@@ -104,19 +115,13 @@
    import { DataTable } from '@/components/ui/data-table';
    import { excelToJson } from '@/utils/data';
    import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
+   import { Plus, ListRestart } from 'lucide-vue-next';
    import ManufacturerForm from '@/components/manufacturers/ManufacturerForm.vue';
+   import ManufacturerService from '@/services/ManufacturerService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   const { toast } = useToast();
 
    const data = ref<Manufacturer[]>([]);
-
-   async function getData(): Promise<Manufacturer[]> {
-      return await excelToJson(excelURL, 'Manufacturers');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-   });
 
    import {
       Select,
@@ -127,7 +132,16 @@
       SelectValue,
    } from '@/components/ui/select';
 
-   const MedicineFiltersColumn = [
+   const getAllManufacturers = async () => {
+      try {
+         data.value = (await ManufacturerService.getAllManufacturers()).data;
+         console.log(data.value);
+      } catch (error) {
+         console.log(error);
+      }
+   };
+
+   const ManufacturerFiltersColumn = [
       {
          title: 'Theo mã hãng sản xuất',
          value: 'manufacturer_id',
@@ -142,16 +156,50 @@
       },
    ];
 
-   const filteredColumn = ref<string>(MedicineFiltersColumn[0].value);
+   const filteredColumn = ref<string>(ManufacturerFiltersColumn[0].value);
    const manufacturerFormRef = ref<InstanceType<
       typeof ManufacturerForm
    > | null>(null);
 
-   const addManufacturer = () => {
+   const manufacturerData = ref<Manufacturer>();
+   const handleManufacturerData = (data: Manufacturer) => {
+      manufacturerData.value = data;
+   };
+
+   const addManufacturer = async () => {
       if (manufacturerFormRef.value) {
-         manufacturerFormRef.value.onSubmit();
+         try {
+            await manufacturerFormRef.value.onSubmit();
+            if (manufacturerData.value) {
+               await ManufacturerService.create(manufacturerData.value);
+               toast({
+                  description: 'Đã thêm nhà cung cấp mới.',
+                  class: 'bg-emerald-600 text-white',
+               });
+               manufacturerFormRef.value.resetForm();
+               manufacturerData.value = undefined;
+               await getAllManufacturers();
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.data.code === 'ER_DUP_ENTRY') {
+               toast({
+                  variant: 'destructive',
+                  description: 'Mã nhà cung cấp đã tồn tại!',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
+
+   onMounted(async () => {
+      await getAllManufacturers();
+   });
 </script>
 
 <style scoped></style>

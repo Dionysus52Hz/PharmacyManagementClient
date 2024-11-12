@@ -48,6 +48,8 @@
                v-if="actionState === 'add' || actionState === 'update'"
                ref="manufacturerFormRef"
                :default-values="props.row.original"
+               :disabled-input="true"
+               @send-value="handleManufacturerData"
             >
             </ManufacturerForm>
             <p v-if="actionState === 'delete'">
@@ -65,15 +67,17 @@
                Cập nhật
             </Button>
 
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteManufacturer(props.row.original.manufacturer_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
             <DialogClose as-child>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="
+                     deleteManufacturer(props.row.original.manufacturer_id)
+                  "
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
                <Button
                   variant="outline"
                   class="w-full"
@@ -110,6 +114,9 @@
    import type { Manufacturer } from './schema';
    import ManufacturerForm from '@/components/manufacturers/ManufacturerForm.vue';
    import { computed, ref } from 'vue';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import ManufacturerService from '@/services/ManufacturerService';
+   const { toast } = useToast();
 
    interface DataTableRowActionProps {
       row: Row<Manufacturer>;
@@ -138,12 +145,67 @@
       }
    });
 
-   const updateManufacturer = () => {
+   const manufacturerData = ref<Manufacturer>();
+   const handleManufacturerData = (data: Manufacturer) => {
+      manufacturerData.value = data;
+   };
+
+   const updateManufacturer = async () => {
       if (manufacturerFormRef.value) {
-         manufacturerFormRef.value.onSubmit();
+         try {
+            await manufacturerFormRef.value.onSubmit();
+
+            if (manufacturerData.value) {
+               const manufacturerId: string =
+                  manufacturerData.value.manufacturer_id;
+               console.log(manufacturerId);
+               await ManufacturerService.updateManufacturer(
+                  manufacturerId,
+                  manufacturerData.value
+               );
+               toast({
+                  description: 'Cập nhật thông tin hãng sản xuất thành công.',
+                  class: 'bg-emerald-600 text-white',
+               });
+            }
+         } catch (error: any) {
+            console.log(error);
+            if (error.response.statusText === 'Forbidden') {
+               toast({
+                  variant: 'destructive',
+                  description:
+                     'Chỉ nhân viên mới có quyền thay đổi thông tin hãng sản xuất',
+               });
+            } else {
+               toast({
+                  variant: 'destructive',
+                  description: 'Xảy ra lỗi không xác định.',
+               });
+            }
+         }
       }
    };
-   const deleteManufacturer = (manufacturerId: string) => {
-      console.log(manufacturerId);
+
+   const deleteManufacturer = async (manufacturerId: string) => {
+      try {
+         await ManufacturerService.deleteManufacturer(manufacturerId);
+         toast({
+            description: 'Xoá hãng sản xuất thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error: any) {
+         console.log(error);
+         if (error.response.statusText === 'Forbidden') {
+            toast({
+               variant: 'destructive',
+               description: 'Chỉ nhân viên mới có quyền xoá hãng sản xuất',
+            });
+         } else {
+            toast({
+               variant: 'destructive',
+               description: 'Xảy ra lỗi không xác định.',
+            });
+         }
+      }
    };
 </script>

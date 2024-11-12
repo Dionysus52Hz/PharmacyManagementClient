@@ -50,11 +50,32 @@
                      <FormLabel>Mật khẩu</FormLabel>
 
                      <FormControl>
-                        <Input
-                           type="text"
-                           placeholder="Nhập mật khẩu"
-                           v-bind="componentField"
-                        />
+                        <div class="relative items-center">
+                           <Input
+                              class="relative"
+                              :type="
+                                 passwordInputState === 'show'
+                                    ? 'text'
+                                    : 'password'
+                              "
+                              placeholder="Nhập mật khẩu"
+                              v-bind="componentField"
+                           />
+                           <span
+                              class="absolute end-0 inset-y-0 flex items-center justify-center px-3 cursor-pointer"
+                           >
+                              <Eye
+                                 v-if="passwordInputState === 'show'"
+                                 @click="passwordInputState = 'hide'"
+                                 class="size-6 text-muted-foreground"
+                              />
+                              <EyeClosed
+                                 v-if="passwordInputState === 'hide'"
+                                 @click="passwordInputState = 'show'"
+                                 class="size-6 text-muted-foreground"
+                              />
+                           </span>
+                        </div>
                      </FormControl>
 
                      <FormMessage />
@@ -115,6 +136,9 @@
    import * as z from 'zod';
    import { useToast } from 'vue-toastification';
    import { useRouter } from 'vue-router';
+   import { ref } from 'vue';
+   import { Eye, EyeClosed } from 'lucide-vue-next';
+   const passwordInputState = ref<'show' | 'hide'>('hide');
 
    const router = useRouter();
    const formSchema = toTypedSchema(
@@ -154,7 +178,7 @@
          toast.success('Đăng nhập thành công!');
          localStorage.setItem('userToken', JSON.stringify(data));
          router.push({ name: 'medicine-view' });
-      } catch (error) {
+      } catch (error: any) {
          console.error('Error:', error);
          alert(error.message || 'Đăng nhập thất bại.');
       }
