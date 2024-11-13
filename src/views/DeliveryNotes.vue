@@ -18,6 +18,13 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số phiếu xuất</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+                     <Button
+                        variant="secondary"
+                        @click="getAllNotes()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -107,7 +114,7 @@
       DialogClose,
    } from '@/components/ui/dialog';
    import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
+   import { Plus, ListRestart } from 'lucide-vue-next';
 
    import { ref, onMounted } from 'vue';
 
