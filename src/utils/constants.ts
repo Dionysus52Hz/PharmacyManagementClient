@@ -11,6 +11,7 @@ import {
     HardDriveDownload,
     HardDriveUpload,
     UserRoundCheck,
+    KeyRound,
     Settings,
     LogOut,
 } from 'lucide-vue-next';
@@ -88,6 +89,11 @@ const MENU_ITEMS = [
                 icon: UserRoundCheck,
                 text: 'Tài khoản',
                 view: 'account-view',
+            },
+            {
+                icon: KeyRound,
+                text: 'Đổi mật khẩu',
+                view: 'change-password-view',
             },
             {
                 icon: Settings,

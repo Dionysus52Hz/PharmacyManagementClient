@@ -7,6 +7,7 @@ import VCalendar from 'v-calendar';
 import { yourMixin } from './mixins/yourMixin';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const app = createApp(App);
 const pinia = createPinia();
