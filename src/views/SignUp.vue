@@ -11,9 +11,13 @@
       </div>
       <div class="w-[360px] flex flex-col px-3 gap-y-8">
          <div class="form-title flex flex-col gap-y-2.5">
-            <div
-               class="logo bg-gray-200 w-[80px] aspect-square rounded-lg"
-            ></div>
+            <div class="logo bg-gray-200 w-[80px] aspect-square rounded-lg">
+               <img
+                  src="../assets/images/logo.png"
+                  alt=""
+                  class="object-cover object-center"
+               />
+            </div>
             <span class="font-semibold text-2xl">Chào mừng bạn. </span>
             <span>Đăng ký tài khoản mới</span>
          </div>
