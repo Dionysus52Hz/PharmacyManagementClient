@@ -16,7 +16,7 @@
                   <FormLabel>Thuốc</FormLabel>
                   <Select v-bind="componentField">
                      <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger :disabled="props.disabledInput">
                            <SelectValue placeholder="Chọn thuốc" />
                         </SelectTrigger>
                      </FormControl>
@@ -115,6 +115,7 @@
                      size="icon"
                      class=""
                      @click="deleteForm"
+                     :disabled="props.disabledInput"
                   >
                      <Trash class="w-5 h-5" />
                   </Button>
@@ -169,12 +170,17 @@
 
    import type { ReceivedNoteDetails } from './schema';
    import type { Medicine } from '@/components/medicine/schema';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import { getCurrentLogin } from '@/utils/currentLogin';
+   import ReceivedNoteDetailsService from '@/services/ReceivedNoteDetailsService';
+   const { toast } = useToast();
    import { excelToJson } from '@/utils/data';
+   import MedicineService from '@/services/MedicineService';
 
    const medicineSelection = ref<Medicine[]>([]);
 
    async function getMedicineData(): Promise<Medicine[]> {
-      return await excelToJson(excelURL, 'Medicine');
+      return await MedicineService.getAllMedicine();
    }
 
    const excelURL = 'src/Database.xlsx';
@@ -208,22 +214,22 @@
          quantity: number;
          price: number;
       };
+      action: string;
+      disabledInput?: boolean;
    }>();
 
-   const emit = defineEmits({
-      sendValue: (payload) => {
-         if (payload) return true;
-         else return false;
-      },
-   });
+   const emit = defineEmits(['sendValue']);
 
-   const { handleSubmit, setFieldValue } = useForm({
+   const { handleSubmit, setFieldValue, resetForm } = useForm({
       validationSchema: formSchema,
       initialValues: props.defaultValues || null,
    });
 
    const onSubmit = handleSubmit((values) => {
       emit('sendValue', values);
+      if (props.action === 'create') {
+         resetForm();
+      }
    });
 
    const isDelete = ref(false);
@@ -234,5 +240,6 @@
    defineExpose({
       onSubmit,
       deleteForm,
+      resetForm,
    });
 </script>

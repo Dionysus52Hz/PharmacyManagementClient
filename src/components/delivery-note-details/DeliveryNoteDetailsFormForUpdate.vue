@@ -207,6 +207,12 @@
                invalid_type_error: 'Số lượng không hợp lệ',
             })
             .min(1, { message: 'Số lượng phải lớn hơn 0' }),
+         price: z
+            .number({
+               required_error: 'Đơn giá không thể để trống',
+               invalid_type_error: 'Đơn giá không hợp lệ',
+            })
+            .min(1, { message: 'Đơn giá phải lớn hơn 0' }),
       })
    );
 

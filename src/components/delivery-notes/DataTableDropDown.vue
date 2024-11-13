@@ -36,7 +36,7 @@
 
             <DialogTrigger asChild>
                <DropdownMenuItem @click="actionState = 'delete'">
-                  <Trash class="w-5 h-5" />Xoá phiếu nhập
+                  <Trash class="w-5 h-5" />Xoá phiếu xuất
                </DropdownMenuItem>
             </DialogTrigger>
          </DropdownMenuContent>
@@ -46,7 +46,8 @@
          v-on:open-auto-focus="(e) => e.preventDefault()"
          class="grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90dvh]"
          :class="{
-            'max-w-[90dvw] min-h-[90dvh]': actionState === 'update',
+            'max-w-[90dvw] min-h-[90dvh]':
+               actionState === 'show-details' || actionState === 'update',
             'h-auto max-w-[90dvw]': actionState == 'show-details',
          }"
       >
@@ -63,8 +64,8 @@
             }"
          >
             <p v-if="actionState === 'delete'">
-               Việc xoá thông tin phiếu nhập không thể hoàn tác. Bạn chắc chắn
-               muốn xoá phiếu nhập này?
+               Việc xoá thông tin phiếu xuất không thể hoàn tác. Bạn chắc chắn
+               muốn xoá phiếu xuất này?
             </p>
             <DataTable
                v-if="actionState === 'show-details'"
@@ -81,7 +82,7 @@
                <template v-slot:action-buttons>
                   <Button
                      @click="
-                        [(actionState = 'update'), getDeliveryNoteDetailsData()]
+                        [getDeliveryNoteDetailsData(), (actionState = 'update')]
                      "
                   >
                      <Pencil class="w-5 h-5 mr-2" />
@@ -99,6 +100,8 @@
                   ref="deliveryNoteFormRef"
                   :init-num-of-details-form="initNumOfDetailsForm"
                   :default-values="deliveryNoteDetailsData"
+                  :action="'update'"
+                  :disabled-input="true"
                >
                </DeliveryNoteForm>
             </div>
@@ -129,15 +132,18 @@
             >
                Quay lại
             </Button>
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteDeliveryNote(props.row.original.delivery_note_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
+
             <DialogClose as-child>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="
+                     deleteDeliveryNote(props.row.original.delivery_note_id)
+                  "
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
                <Button
                   v-if="actionState === 'delete'"
                   class="w-full"
@@ -186,14 +192,19 @@
    import { onMounted, computed, ref } from 'vue';
    import { excelToJson } from '@/utils/data';
    import { vAutoAnimate } from '@formkit/auto-animate/vue';
+   import DeliveryNoteDetailsService from '@/services/DeliveryNoteDetailsService';
+   import MedicineService from '@/services/MedicineService';
+   import DeliveryNoteService from '@/services/DeliveryNoteService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import Medicine from '@/views/Medicine.vue';
+   import CustomerService from '@/services/CustomerService';
+   const { toast } = useToast();
 
    const data = ref<DeliveryNoteDetails[]>([]);
 
    async function getData(): Promise<DeliveryNoteDetails[]> {
       return await excelToJson(excelURL, 'DeliveryNoteDetails');
    }
-
-   const excelURL = 'src/Database.xlsx';
    const deliveryNoteFormRef = ref<InstanceType<
       typeof DeliveryNoteForm
    > | null>(null);
@@ -218,18 +229,29 @@
       deliveryNoteDetailsData.value = {
          ...props.row.original,
       };
-      deliveryNoteDetailsData.value.details = (await getData()).filter(
-         (note) => note.delivery_note_id === props.row.original.delivery_note_id
+      const customerValues = await CustomerService.getCustomer(
+         deliveryNoteDetailsData.value.customer_id
       );
+      deliveryNoteDetailsData.value.details = (
+         await DeliveryNoteDetailsService.getNote(
+            props.row.original.delivery_note_id
+         )
+      ).details;
+
+      deliveryNoteDetailsData.value = {
+         ...deliveryNoteDetailsData.value,
+         customer_name: customerValues.name,
+         address: customerValues.address,
+         phone: customerValues.phone,
+      };
+      console.log(deliveryNoteDetailsData.value);
       initNumOfDetailsForm.value = deliveryNoteDetailsData.value.details.length;
       console.log(initNumOfDetailsForm.value);
       console.log(deliveryNoteDetailsData.value);
    };
 
    const showDeliveryNoteDetails = async (id: string) => {
-      data.value = (await getData()).filter(
-         (note) => note.delivery_note_id === id
-      );
+      data.value = (await DeliveryNoteDetailsService.getNote(id)).details;
    };
 
    const actionState = ref<'add' | 'show-details' | 'update' | 'delete'>(
@@ -248,17 +270,50 @@
       }
    });
 
-   onMounted(async () => {
-      data.value = await getData();
-   });
-
    const updateDeliveryNotes = async () => {
       if (deliveryNoteFormRef.value) {
          await deliveryNoteFormRef.value.onSubmit();
       }
    };
 
-   const deleteDeliveryNote = (deliveryNoteId: string) => {
-      console.log(deliveryNoteId);
+   const deleteDeliveryNote = async (deliveryNoteId: string) => {
+      try {
+         const noteDetails = (
+            await DeliveryNoteDetailsService.getNote(deliveryNoteId)
+         ).details;
+         if (noteDetails) {
+            noteDetails.forEach(async (detail) => {
+               const medicineDeleted = await MedicineService.getMedicine(
+                  detail.medicine_id
+               );
+               const medicineQuantity = medicineDeleted.quantity;
+
+               await MedicineService.updateMedicine(
+                  medicineDeleted.medicine_id,
+                  {
+                     ...medicineDeleted,
+                     quantity: medicineQuantity + detail.quantity,
+                  }
+               );
+               await DeliveryNoteDetailsService.deleteNote(
+                  deliveryNoteId,
+                  detail.medicine_id
+               );
+            });
+         }
+
+         await DeliveryNoteService.deleteNote(deliveryNoteId);
+         // console.log(noteDetails);
+         toast({
+            description: 'Xoá phiếu xuất thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error) {
+         console.log(error);
+         toast({
+            description: 'Xảy ra lỗi không xác định',
+            variant: 'destructive',
+         });
+      }
    };
 </script>

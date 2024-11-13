@@ -5,13 +5,8 @@ export const receivedNoteSchema = z.object({
    employee_id: z.string(),
    supplier_id: z.string(),
    received_date: z.string(),
-   details: z.array(
-      z.object({
-         medicine_id: z.string(),
-         quantity: z.number(),
-         price: z.number(),
-      })
-   ),
+   total_price: z.number(),
+   // details: z.array(z.string()),
 });
 
 export type ReceivedNote = z.infer<typeof receivedNoteSchema>;

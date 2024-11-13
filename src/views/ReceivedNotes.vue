@@ -18,6 +18,14 @@
                   <div class="flex items-center gap-x-1 font-bold text-2xl">
                      <span class="">Tổng số phiếu nhập</span>
                      <span class="text-gray-500"> {{ data.length }} </span>
+
+                     <Button
+                        variant="secondary"
+                        @click="getAllNotes()"
+                     >
+                        <ListRestart class="w-5 h-5 mr-2" />
+                        Làm mới
+                     </Button>
                   </div>
                </template>
                <template v-slot:filters-selection>
@@ -65,6 +73,10 @@
                <ReceivedNoteForm
                   ref="receivedNoteFormRef"
                   :init-num-of-details-form="2"
+                  @send-value="handleReceivedNoteData"
+                  :disabled-input="true"
+                  :default-values="defaultValuesForForm"
+                  :action="'create'"
                >
                </ReceivedNoteForm>
             </div>
@@ -103,27 +115,21 @@
       DialogClose,
    } from '@/components/ui/dialog';
    import { Button } from '@/components/ui/button';
-   import { Plus } from 'lucide-vue-next';
+   import { Plus, ListRestart } from 'lucide-vue-next';
 
-   import { ref, onMounted } from 'vue';
+   import { ref, onMounted, onBeforeMount } from 'vue';
 
    import { columns } from '@/components/received-notes/columns';
    import type { ReceivedNote } from '@/components/received-notes/schema';
    import ReceivedNoteForm from '@/components/received-notes/ReceivedNoteForm.vue';
    import { DataTable } from '@/components/ui/data-table';
-   import { excelToJson } from '@/utils/data';
+   import ReceivedNoteService from '@/services/ReceivedNoteService';
+   import ReceivedNoteDetailsService from '@/services/ReceivedNoteDetailsService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import { getCurrentLogin } from '@/utils/currentLogin';
+   const { toast } = useToast();
 
    const data = ref<ReceivedNote[]>([]);
-
-   async function getData(): Promise<ReceivedNote[]> {
-      return await excelToJson(excelURL, 'ReceivedNotes');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-      console.log(data.value);
-   });
 
    import {
       Select,
@@ -133,6 +139,26 @@
       SelectTrigger,
       SelectValue,
    } from '@/components/ui/select';
+
+   const getAllNotes = async () => {
+      try {
+         data.value = await ReceivedNoteService.getAllNotes();
+
+         // let prices = [];
+         // data.value.forEach(async (item, index) => {
+         //    const details = (
+         //       await ReceivedNoteDetailsService.getNote(item.received_note_id)
+         //    ).details;
+         //    let sum = 0;
+         //    await details.forEach((detail) => {
+         //       sum += detail.quantity * detail.price;
+         //    });
+         //    prices[index] = sum;
+         // });
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    const ReceivedNotesFiltersColumn = [
       {
@@ -149,16 +175,50 @@
       },
    ];
 
+   const currentEmployee = getCurrentLogin();
+   const defaultValuesForForm: ReceivedNote = {
+      received_note_id: '',
+      employee_id: currentEmployee.employee_id,
+      supplier_id: '',
+      received_date: '',
+      details: [],
+   };
+
    const filteredColumn = ref<string>(ReceivedNotesFiltersColumn[0].value);
    const receivedNoteFormRef = ref<InstanceType<
       typeof ReceivedNoteForm
    > | null>(null);
 
-   const addReceivedNote = () => {
+   const receivedNoteData = ref<ReceivedNote>({
+      received_note_id: '',
+      employee_id: '',
+      supplier_id: '',
+      received_date: '',
+      details: [],
+   });
+   const handleReceivedNoteData = (data: ReceivedNote) => {
+      receivedNoteData.value = data;
+      console.log(localStorage.getItem('receivedNoteDetails'));
+   };
+
+   const addReceivedNote = async () => {
       if (receivedNoteFormRef.value) {
-         receivedNoteFormRef.value.onSubmit();
+         try {
+            await receivedNoteFormRef.value.onSubmit();
+         } catch (error: any) {
+            console.log(error);
+         }
       }
    };
+
+   onMounted(async () => {
+      // await getPrices();
+      await getAllNotes();
+   });
+
+   onBeforeMount(async () => {
+      await getAllNotes();
+   });
 </script>
 
 <style scoped></style>
