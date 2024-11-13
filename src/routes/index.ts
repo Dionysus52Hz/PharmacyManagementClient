@@ -18,109 +18,115 @@ import ImportData from '@/views/ImportData.vue';
 import ExportData from '@/views/ExportData.vue';
 import Account from '@/views/Account.vue';
 import Settings from '@/views/Settings.vue';
+import ChangePassword from '@/views/ChangePassword.vue';
 
 const routes = [
-   {
-      path: '/',
-      component: Home,
-      name: 'home-view',
-   },
-   {
-      path: '/about-us',
-      component: AboutUs,
-      name: 'about-us-view',
-   },
-   {
-      path: '/contacts',
-      component: Contacts,
-      name: 'contacts-view',
-   },
+    {
+        path: '/',
+        component: Home,
+        name: 'home-view',
+    },
+    {
+        path: '/about-us',
+        component: AboutUs,
+        name: 'about-us-view',
+    },
+    {
+        path: '/contacts',
+        component: Contacts,
+        name: 'contacts-view',
+    },
 
-   {
-      path: '/login',
-      component: Login,
-      name: 'login-view',
-   },
-   {
-      path: '/signup',
-      component: SignUp,
-      name: 'signup-view',
-   },
-   {
-      path: '/reset-password',
-      component: ResetPassword,
-      name: 'reset-password-view',
-   },
-   {
-      path: '/medicine',
-      component: Medicine,
-      name: 'medicine-view',
-   },
-   {
-      path: '/medicine-categories',
-      component: MedicineCategories,
-      name: 'medicine-categories-view',
-   },
-   {
-      path: '/suppliers',
-      component: Suppliers,
-      name: 'suppliers-view',
-   },
-   {
-      path: '/manufactures',
-      component: Manufacturers,
-      name: 'manufacturers-view',
-   },
-   {
-      path: '/customers',
-      component: Customers,
-      name: 'customers-view',
-   },
-   {
-      path: '/employees',
-      component: Employees,
-      name: 'employees-view',
-   },
-   {
-      path: '/received-notes',
-      component: ReceivedNotes,
-      name: 'received-notes-view',
-   },
-   {
-      path: '/delivery-notes',
-      component: DeliveryNotes,
-      name: 'delivery-notes-view',
-   },
-   {
-      path: '/statistics',
-      component: Statistics,
-      name: 'statistics-view',
-   },
-   {
-      path: '/import-data',
-      component: ImportData,
-      name: 'import-data-view',
-   },
-   {
-      path: '/export-data',
-      component: ExportData,
-      name: 'export-data-view',
-   },
-   {
-      path: '/account',
-      component: Account,
-      name: 'account-view',
-   },
-   {
-      path: '/settings',
-      component: Settings,
-      name: 'settings-view',
-   },
+    {
+        path: '/login',
+        component: Login,
+        name: 'login-view',
+    },
+    {
+        path: '/signup',
+        component: SignUp,
+        name: 'signup-view',
+    },
+    {
+        path: '/reset-password',
+        component: ResetPassword,
+        name: 'reset-password-view',
+    },
+    {
+        path: '/medicine',
+        component: Medicine,
+        name: 'medicine-view',
+    },
+    {
+        path: '/medicine-categories',
+        component: MedicineCategories,
+        name: 'medicine-categories-view',
+    },
+    {
+        path: '/suppliers',
+        component: Suppliers,
+        name: 'suppliers-view',
+    },
+    {
+        path: '/manufactures',
+        component: Manufacturers,
+        name: 'manufacturers-view',
+    },
+    {
+        path: '/customers',
+        component: Customers,
+        name: 'customers-view',
+    },
+    {
+        path: '/employees',
+        component: Employees,
+        name: 'employees-view',
+    },
+    {
+        path: '/received-notes',
+        component: ReceivedNotes,
+        name: 'received-notes-view',
+    },
+    {
+        path: '/delivery-notes',
+        component: DeliveryNotes,
+        name: 'delivery-notes-view',
+    },
+    {
+        path: '/statistics',
+        component: Statistics,
+        name: 'statistics-view',
+    },
+    {
+        path: '/import-data',
+        component: ImportData,
+        name: 'import-data-view',
+    },
+    {
+        path: '/export-data',
+        component: ExportData,
+        name: 'export-data-view',
+    },
+    {
+        path: '/account',
+        component: Account,
+        name: 'account-view',
+    },
+    {
+        path: '/change-password',
+        component: ChangePassword,
+        name: 'change-password-view',
+    },
+    {
+        path: '/settings',
+        component: Settings,
+        name: 'settings-view',
+    },
 ];
 
 const router = createRouter({
-   history: createWebHistory(),
-   routes,
+    history: createWebHistory(),
+    routes,
 });
 
 export default router;
