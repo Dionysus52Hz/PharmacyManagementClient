@@ -6,7 +6,7 @@
             Lưu dữ liệu về thiết bị của bạn tại đây.
          </h3>
       </div>
-      <div class="px-6 py-8">
+      <div class="px-6 py-8 flex justify-center">
          <Card class="w-[500px]">
             <CardHeader>
                <CardTitle>Định dạng tập tin</CardTitle>

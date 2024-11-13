@@ -4,7 +4,7 @@
    >
       <div class="bg-inherit fixed w-full p-6 flex gap-x-[10px] items-center">
          <div class="logo bg-slate-300 w-6 aspect-square rounded"></div>
-         <span class="text-sm font-bold">Untitled UI</span>
+         <span class="text-sm font-bold">Pharmacity</span>
       </div>
 
       <div class="menu-items-container overflow-y-auto mt-[72px] h-full">
