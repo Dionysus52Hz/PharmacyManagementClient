@@ -3,7 +3,13 @@
       class="bg-[#fafafa] fixed top-0 h-dvh w-[220px] lg:block flex flex-col"
    >
       <div class="bg-inherit fixed w-full p-6 flex gap-x-[10px] items-center">
-         <div class="logo bg-slate-300 w-6 aspect-square rounded"></div>
+         <div class="logo bg-slate-300 w-8 aspect-square rounded">
+            <img
+               src="../assets/images/logo.png"
+               alt=""
+               class="object-cover object-center h-full"
+            />
+         </div>
          <span class="text-sm font-bold">Pharmacity</span>
       </div>
 

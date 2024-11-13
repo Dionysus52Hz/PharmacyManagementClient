@@ -2,13 +2,22 @@
    <nav
       class="bg-white w-full h-[80px] flex justify-between items-center px-6 fixed"
    >
-      <div class="logo-container flex items-center gap-x-2.5">
-         <div class="logo bg-gray-300 h-10 aspect-square rounded"></div>
+      <div
+         class="logo-container flex items-center gap-x-2.5 cursor-pointer"
+         @click="router.push({ name: 'home-view' })"
+      >
+         <div class="logo bg-gray-300 h-10 aspect-square rounded">
+            <img
+               src="../assets/images/logo.png"
+               alt=""
+               class="object-cover object-center"
+            />
+         </div>
 
-         <p class="app-name text-lg font-semibold">App Name</p>
+         <p class="app-name text-lg font-semibold">Pharmacity</p>
       </div>
 
-      <NavigationMenu class="place-self-center">
+      <!-- <NavigationMenu class="place-self-center">
          <NavigationMenuList class="gap-x-2.5">
             <NavigationMenuItem v-for="item in navigationMenuItems">
                <RouterLink
@@ -26,7 +35,7 @@
                </RouterLink>
             </NavigationMenuItem>
          </NavigationMenuList>
-      </NavigationMenu>
+      </NavigationMenu> -->
 
       <div
          class="authentication-container flex items-center gap-x-2.5"
@@ -72,6 +81,7 @@
    import { Button } from '@/components/ui/button';
    import { useCurrentPageStore } from '@/stores/currentPageStore';
    import { computed, ref } from 'vue';
+   import router from '@/routes';
 
    const currentPageStore = useCurrentPageStore();
    const currentPage = computed(() => {
