@@ -32,7 +32,10 @@ export const columns: ColumnDef<ReceivedNoteDetails>[] = [
       header: ({ column }) => {
          return h(DataTableColumnHeader, { column, title: 'Tên thuốc' });
       },
-      cell: ({ row }) => h('div', { class: '' }, row.getValue('medicine_name')),
+      cell: ({ row }) => {
+         console.log(row.original);
+         return h('div', { class: '' }, row.getValue('medicine_name'));
+      },
       sortingFn: sortingFn,
    },
    {
@@ -47,7 +50,13 @@ export const columns: ColumnDef<ReceivedNoteDetails>[] = [
       header: ({ column }) => {
          return h(DataTableColumnHeader, { column, title: 'Đơn giá' });
       },
-      cell: ({ row }) => h('div', { class: '' }, row.getValue('price')),
+      cell: ({ row }) => {
+         const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+         }).format(row.getValue('price'));
+         return h('div', { class: '' }, formattedPrice);
+      },
    },
    // {
    //    id: 'actions',

@@ -12,7 +12,7 @@
 
             <div class="overflow-y-auto p-1">
                <div class="grid gap-y-6">
-                  <FormField
+                  <!-- <FormField
                      v-slot="{ componentField }"
                      name="received_note_id"
                   >
@@ -23,11 +23,13 @@
                               type="text"
                               placeholder="Nhập mã phiếu nhập"
                               v-bind="componentField"
+                              :disabled="props.disabledInput"
                            />
                         </FormControl>
                         <FormMessage />
                      </FormItem>
-                  </FormField>
+                  </FormField> -->
+
                   <FormField
                      v-slot="{ componentField }"
                      name="employee_id"
@@ -39,6 +41,7 @@
                               type="text"
                               placeholder="Nhập mã nhân viên"
                               v-bind="componentField"
+                              :disabled="props.disabledInput"
                            />
                         </FormControl>
                         <FormMessage />
@@ -94,6 +97,8 @@
                      @send-value="handleNoteDetailsData"
                      ref="receivedNoteDetailsFormRef"
                      :default-values="getMedicineDetails(index)"
+                     :action="'update'"
+                     :disabled-input="props.action === 'create' ? false : true"
                   ></ReceivedNoteDetailsForm>
                </div>
             </div>
@@ -103,6 +108,7 @@
                   variant="secondary"
                   class="w-full"
                   @click="addReceivedNoteDetailsForm"
+                  :disabled="props.action !== 'create'"
                >
                   <Plus class="w-5 h-5 mr-2" />
                   Thêm dòng mới
@@ -217,8 +223,15 @@
    import ReceivedNoteDetailsForm from '../received-notes-details/ReceivedNoteDetailsForm.vue';
    import { excelToJson } from '@/utils/data';
    import type { ReceivedNoteDetails } from '../received-notes-details/schema';
+   import SupplierService from '@/services/SupplierService';
+   import ReceivedNoteService from '@/services/ReceivedNoteService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import { getCurrentLogin } from '@/utils/currentLogin';
+   import ReceivedNoteDetailsService from '@/services/ReceivedNoteDetailsService';
+   import MedicineService from '@/services/MedicineService';
+   const { toast } = useToast();
 
-   const df = new DateFormatter('fr-FR', {
+   const df = new DateFormatter('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -227,18 +240,16 @@
    const suppliersSelection = ref<Supplier[]>([]);
 
    async function getSuppliersData(): Promise<Supplier[]> {
-      return await excelToJson(excelURL, 'Suppliers');
+      return (await SupplierService.getAllSuppliers()).data;
    }
-
-   const excelURL = 'src/Database.xlsx';
 
    const formSchema = toTypedSchema(
       z.object({
-         received_note_id: z
-            .string({
-               required_error: 'Mã phiếu nhập không thể để trống',
-            })
-            .min(1, { message: 'Mã phiếu nhập không thể để trống' }),
+         // received_note_id: z
+         //    .string({
+         //       required_error: 'Mã phiếu nhập không thể để trống',
+         //    })
+         //    .min(1, { message: 'Mã phiếu nhập không thể để trống' }),
          employee_id: z
             .string({
                required_error: 'Mã nhân viên không thể để trống',
@@ -260,11 +271,20 @@
    const props = defineProps<{
       defaultValues?: ReceivedNote;
       initNumOfDetailsForm?: number;
+      disabledInput?: boolean;
+      action?: string;
    }>();
 
-   const { handleSubmit, setFieldValue, values } = useForm({
+   const { handleSubmit, setFieldValue, values, resetForm } = useForm({
       validationSchema: formSchema,
       initialValues: props.defaultValues || null,
+   });
+
+   const emit = defineEmits({
+      sendValue: (payload) => {
+         if (payload) return true;
+         else return false;
+      },
    });
 
    // const receivedDatePlaceholder = ref();
@@ -275,7 +295,6 @@
    // });
 
    const list = ref<number[]>([]);
-   console.log(list.value);
    const addReceivedNoteDetailsForm = () => {
       list.value.push(1);
    };
@@ -285,9 +304,44 @@
       typeof ReceivedNoteDetailsForm
    > | null>(null);
 
-   const onSubmitDetails = () => {
+   const onSubmitDetails = async () => {
+      localStorage.removeItem('receivedNoteDetails');
       if (itemRefs.value) {
-         itemRefs.value.forEach((ref) => ref?.onSubmit());
+         itemRefs.value.forEach((ref) => {
+            ref?.onSubmit();
+         });
+      }
+   };
+
+   const saveToLocalStorage = (values) => {
+      const existingData = localStorage.getItem('receivedNoteDetails');
+
+      if (!existingData) {
+         localStorage.setItem('receivedNoteDetails', JSON.stringify([values]));
+      } else {
+         const dataArray = JSON.parse(existingData);
+
+         dataArray.push(values);
+
+         localStorage.setItem('receivedNoteDetails', JSON.stringify(dataArray));
+      }
+   };
+   localStorage.removeItem('receivedNoteDetails');
+
+   const handleNoteDetailsData = async (values) => {
+      saveToLocalStorage(values);
+
+      try {
+         if (props.action === 'create') {
+            console.log('create details');
+         } else if (props.action === 'update') {
+            console.log('update details');
+         }
+      } catch (error) {
+         toast({
+            description: 'Xảy ra lỗi không xác định.',
+            variant: 'destructive',
+         });
       }
    };
 
@@ -304,21 +358,135 @@
          return props.defaultValues?.details[index];
       } else return undefined;
    };
-   const receivedNoteDetailsData = ref<DataFromNoteDetails[]>([]);
 
-   const handleNoteDetailsData = (data: DataFromNoteDetails) => {
-      receivedNoteDetailsData.value.push(data);
-   };
+   const onSubmit = handleSubmit(async (values) => {
+      try {
+         await onSubmitDetails();
+         const handleValues: ReceivedNote = {
+            ...values,
+            received_note_id: '123',
+            received_date: toDate(today(getLocalTimeZone())).toLocaleDateString(
+               'en-CA'
+            ),
+         };
+         if (props.action === 'create') {
+            console.log('create');
+            const newNoteId = (await ReceivedNoteService.create(handleValues))
+               .received_note_id;
 
-   const onSubmit = handleSubmit((values) => {
-      receivedNoteDetailsData.value = [];
-      onSubmitDetails();
-      const handleValues: ReceivedNote = {
-         ...values,
-         received_date: df.format(toDate(today(getLocalTimeZone()))),
-         details: receivedNoteDetailsData.value,
-      };
-      console.log(handleValues);
+            const receivedNoteDetailsData = JSON.parse(
+               localStorage.getItem('receivedNoteDetails')
+            );
+
+            if (receivedNoteDetailsData) {
+               receivedNoteDetailsData.forEach(async (detail) => {
+                  const finalDetail = {
+                     ...detail,
+                     received_note_id: newNoteId,
+                  };
+                  const currentMedicine = await MedicineService.getMedicine(
+                     detail.medicine_id
+                  );
+
+                  const currentQuantity = currentMedicine.quantity;
+
+                  if (!currentQuantity || currentQuantity === 0) {
+                     await MedicineService.updateMedicine(detail.medicine_id, {
+                        ...currentMedicine,
+                        quantity: detail.quantity,
+                     });
+                  } else if (currentQuantity > 0) {
+                     await MedicineService.updateMedicine(detail.medicine_id, {
+                        ...currentMedicine,
+                        quantity: currentQuantity + detail.quantity,
+                     });
+                  }
+
+                  await ReceivedNoteDetailsService.create(finalDetail);
+               });
+            } else
+               throw {
+                  message: 'Missing details',
+               };
+
+            emit('sendValue', handleValues);
+            toast({
+               description: 'Đã thêm phiếu nhập mới.',
+               class: 'bg-emerald-600 text-white',
+            });
+            resetForm();
+         } else if (props.action === 'update') {
+            console.log('update');
+            handleValues.received_note_id =
+               props.defaultValues?.received_note_id;
+            await ReceivedNoteService.updateNote(
+               props.defaultValues?.received_note_id,
+               handleValues
+            );
+
+            const receivedNoteDetailsData = JSON.parse(
+               localStorage.getItem('receivedNoteDetails')
+            );
+
+            console.log(receivedNoteDetailsData);
+            const updatedNoteId = props.defaultValues?.received_note_id;
+            console.log(props.defaultValues);
+
+            console.log(receivedNoteDetailsData);
+            if (receivedNoteDetailsData) {
+               receivedNoteDetailsData.forEach(async (detail, index) => {
+                  const currentMedicine = await MedicineService.getMedicine(
+                     detail.medicine_id
+                  );
+                  const quantityBeforeUpdate =
+                     props.defaultValues.details[index].quantity;
+                  const quantityAfterUpdate = detail.quantity;
+                  console.log(
+                     currentMedicine.quantity,
+                     quantityBeforeUpdate,
+                     quantityAfterUpdate
+                  );
+
+                  await MedicineService.updateMedicine(detail.medicine_id, {
+                     ...currentMedicine,
+                     quantity:
+                        currentMedicine.quantity -
+                        quantityBeforeUpdate +
+                        quantityAfterUpdate,
+                  });
+                  const finalDetail = {
+                     ...detail,
+                     received_note_id: updatedNoteId,
+                  };
+
+                  console.log(detail);
+                  console.log('create');
+                  await ReceivedNoteDetailsService.updateNote(
+                     updatedNoteId,
+                     detail.medicine_id,
+                     finalDetail
+                  );
+               });
+            } else
+               throw {
+                  message: 'Missing details',
+               };
+
+            emit('sendValue', handleValues);
+            toast({
+               description: `Cập nhật thông tin phiếu nhập có mã ${updatedNoteId} thành công.`,
+               class: 'bg-emerald-600 text-white',
+            });
+         }
+      } catch (error: any) {
+         console.log(error);
+         if (error.message === 'Missing details') {
+            toast({
+               description: 'Chi tiết phiếu nhập không thể để trống',
+               variant: 'destructive',
+            });
+         }
+      }
    });
 
    watch(
@@ -341,5 +509,6 @@
 
    defineExpose({
       onSubmit,
+      resetForm,
    });
 </script>

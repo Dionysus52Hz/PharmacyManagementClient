@@ -39,14 +39,14 @@
                   </Select>
                </template>
 
-               <template v-slot:action-buttons>
+               <!-- <template v-slot:action-buttons>
                   <DialogTrigger asChild>
                      <Button>
                         <Plus class="w-5 h-5" />
                         Thêm khách hàng
                      </Button>
                   </DialogTrigger>
-               </template>
+               </template> -->
             </DataTable>
          </div>
 

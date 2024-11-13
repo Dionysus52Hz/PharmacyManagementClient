@@ -12,7 +12,7 @@
 
             <div class="overflow-y-auto p-1">
                <div class="grid gap-y-6">
-                  <FormField
+                  <!-- <FormField
                      v-slot="{ componentField }"
                      name="delivery_note_id"
                   >
@@ -27,7 +27,7 @@
                         </FormControl>
                         <FormMessage />
                      </FormItem>
-                  </FormField>
+                  </FormField> -->
 
                   <FormField
                      v-slot="{ componentField }"
@@ -40,6 +40,7 @@
                               type="text"
                               placeholder="Nhập mã nhân viên"
                               v-bind="componentField"
+                              :disabled="props.disabledInput"
                            />
                         </FormControl>
                         <FormMessage />
@@ -57,6 +58,7 @@
                               type="text"
                               placeholder="Nguyễn Văn A"
                               v-bind="componentField"
+                              v-bind:model-value="defaultValue?.customer_name"
                            />
                         </FormControl>
                         <FormMessage />
@@ -74,6 +76,7 @@
                               type="text"
                               placeholder="0xxxxxxxxx"
                               v-bind="componentField"
+                              v-bind:model-value="defaultValue?.phone"
                            />
                         </FormControl>
                         <FormMessage />
@@ -91,6 +94,7 @@
                               type="text"
                               placeholder="Số nhà, tên đường, quận,..."
                               v-bind="componentField"
+                              v-bind:model-value="props.defaultValues?.address"
                            />
                         </FormControl>
                         <FormMessage />
@@ -106,13 +110,31 @@
             <h1 class="text-sm font-semibold px-1">Chi tiết phiếu xuất</h1>
             <Separator class="mt-2 mb-4" />
             <div class="overflow-y-auto mb-4 p-1">
-               <div class="grid gap-y-6">
+               <div
+                  class="grid gap-y-6"
+                  v-if="props.action !== 'update'"
+               >
                   <DeliveryNoteDetailsForm
                      v-for="(item, index) in list"
                      @send-value="handleNoteDetailsData"
                      ref="deliveryNoteDetailsFormRef"
                      :default-values="getMedicineDetails(index)"
+                     :action="'update'"
+                     :disabled-input="props.action === 'create' ? false : true"
                   ></DeliveryNoteDetailsForm>
+               </div>
+               <div
+                  class="grid gap-y-6"
+                  v-if="props.action === 'update'"
+               >
+                  <DeliveryNoteDetailsFormForUpdate
+                     v-for="(item, index) in list"
+                     @send-value="handleNoteDetailsData"
+                     ref="deliveryNoteDetailsFormRef"
+                     :default-values="getMedicineDetails(index)"
+                     :action="'update'"
+                     :disabled-input="props.action === 'create' ? false : true"
+                  ></DeliveryNoteDetailsFormForUpdate>
                </div>
             </div>
 
@@ -121,6 +143,7 @@
                   variant="secondary"
                   class="w-full"
                   @click="addDeliveryNoteDetailsForm"
+                  :disabled="props.action !== 'create'"
                >
                   <Plus class="w-5 h-5 mr-2" />
                   Thêm dòng mới
@@ -235,6 +258,15 @@
    import ReceivedNoteDetailsForm from '../received-notes-details/ReceivedNoteDetailsForm.vue';
    import { excelToJson } from '@/utils/data';
    import DeliveryNoteDetailsForm from '../delivery-note-details/DeliveryNoteDetailsForm.vue';
+   import DeliveryNoteDetailsFormForUpdate from '../delivery-note-details/DeliveryNoteDetailsFormForUpdate.vue';
+   import SupplierService from '@/services/SupplierService';
+   import DeliveryNoteService from '@/services/DeliveryNoteService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import { getCurrentLogin } from '@/utils/currentLogin';
+   import DeliveryNoteDetailsService from '@/services/DeliveryNoteDetailsService';
+   import MedicineService from '@/services/MedicineService';
+   import CustomerService from '@/services/CustomerService';
+   const { toast } = useToast();
 
    const df = new DateFormatter('fr-FR', {
       year: 'numeric',
@@ -242,21 +274,13 @@
       day: '2-digit',
    });
 
-   const suppliersSelection = ref<Supplier[]>([]);
-
-   async function getSuppliersData(): Promise<Supplier[]> {
-      return await excelToJson(excelURL, 'Suppliers');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-
    const formSchema = toTypedSchema(
       z.object({
-         delivery_note_id: z
-            .string({
-               required_error: 'Mã phiếu xuất không thể để trống',
-            })
-            .min(1, { message: 'Mã phiếu xuất không thể để trống' }),
+         // delivery_note_id: z
+         //    .string({
+         //       required_error: 'Mã phiếu xuất không thể để trống',
+         //    })
+         //    .min(1, { message: 'Mã phiếu xuất không thể để trống' }),
          employee_id: z
             .string({
                required_error: 'Mã nhân viên không thể để trống',
@@ -285,14 +309,30 @@
       })
    );
 
+   interface DefaultValueForForm {
+      customer_name: string;
+      phone: string;
+      address: string;
+   }
+
    const props = defineProps<{
-      defaultValues?: DeliveryNote;
+      defaultValues?: DefaultValueForForm;
       initNumOfDetailsForm?: number;
+      disabledInput?: boolean;
+      action?: string;
    }>();
 
-   const { handleSubmit, setFieldValue, values } = useForm({
+   const defaultValue = ref(props.defaultValues);
+   const { handleSubmit, setFieldValue, values, resetForm } = useForm({
       validationSchema: formSchema,
-      initialValues: props.defaultValues || null,
+      initialValues: defaultValue.value || null,
+   });
+
+   const emit = defineEmits({
+      sendValue: (payload) => {
+         if (payload) return true;
+         else return false;
+      },
    });
 
    // const receivedDatePlaceholder = ref();
@@ -313,9 +353,44 @@
       typeof ReceivedNoteDetailsForm
    > | null>(null);
 
-   const onSubmitDetails = () => {
+   const onSubmitDetails = async () => {
+      localStorage.removeItem('deliveryNoteDetails');
       if (itemRefs.value) {
-         itemRefs.value.forEach((ref) => ref?.onSubmit());
+         itemRefs.value.forEach((ref) => {
+            ref?.onSubmit();
+         });
+      }
+   };
+
+   const saveToLocalStorage = (values) => {
+      const existingData = localStorage.getItem('deliveryNoteDetails');
+
+      if (!existingData) {
+         localStorage.setItem('deliveryNoteDetails', JSON.stringify([values]));
+      } else {
+         const dataArray = JSON.parse(existingData);
+
+         dataArray.push(values);
+
+         localStorage.setItem('deliveryNoteDetails', JSON.stringify(dataArray));
+      }
+   };
+   localStorage.removeItem('deliveryNoteDetails');
+
+   const handleNoteDetailsData = async (values) => {
+      saveToLocalStorage(values);
+
+      try {
+         if (props.action === 'create') {
+            console.log('create details');
+         } else if (props.action === 'update') {
+            console.log('update details');
+         }
+      } catch (error) {
+         toast({
+            description: 'Xảy ra lỗi không xác định.',
+            variant: 'destructive',
+         });
       }
    };
 
@@ -334,23 +409,190 @@
    };
    const deliveryNoteDetailsData = ref<DataFromNoteDetails[]>([]);
 
-   const handleNoteDetailsData = (data: DataFromNoteDetails) => {
-      deliveryNoteDetailsData.value.push(data);
-   };
+   const onSubmit = handleSubmit(async (values) => {
+      try {
+         await onSubmitDetails();
+         const handleValues: DeliveryNote = {
+            ...values,
+            delivery_note_id: '123',
+            delivery_date: toDate(today(getLocalTimeZone())).toLocaleDateString(
+               'en-CA'
+            ),
+         };
+         if (props.action === 'create') {
+            console.log('create');
+            const {
+               employee_id,
+               delivery_note_id,
+               delivery_date,
+               ...customerValues
+            } = handleValues;
 
-   const onSubmit = handleSubmit((values) => {
-      deliveryNoteDetailsData.value = [];
-      onSubmitDetails();
-      const handleValues: DeliveryNote = {
-         ...values,
-         delivery_date: df.format(toDate(today(getLocalTimeZone()))),
-         details: deliveryNoteDetailsData.value,
-      };
-      console.log(handleValues);
+            const newCustomerId = (await CustomerService.create(customerValues))
+               .newCustomer[0].customer_id;
+            console.log(newCustomerId);
+            const handleNoteValue = {
+               ...handleValues,
+               customer_id: newCustomerId,
+            };
+            console.log(handleNoteValue);
+            const newNoteId = (
+               await DeliveryNoteService.create(handleNoteValue)
+            ).delivery_note_id;
+
+            const deliveryNoteDetailsData = JSON.parse(
+               localStorage.getItem('deliveryNoteDetails')
+            );
+
+            if (deliveryNoteDetailsData) {
+               deliveryNoteDetailsData.forEach(async (detail) => {
+                  const finalDetail = {
+                     ...detail,
+                     delivery_note_id: newNoteId,
+                  };
+                  const currentMedicine = await MedicineService.getMedicine(
+                     detail.medicine_id
+                  );
+
+                  const currentQuantity = currentMedicine.quantity;
+                  if (detail.quantity > currentQuantity) {
+                     toast({
+                        description: 'Số lượng thuốc không đủ',
+                        variant: 'destructive',
+                     });
+                     throw {
+                        message: 'Not enough quantity',
+                     };
+                  } else {
+                     await MedicineService.updateMedicine(detail.medicine_id, {
+                        ...currentMedicine,
+                        quantity: currentQuantity - detail.quantity,
+                     });
+                  }
+
+                  // if (!currentQuantity || currentQuantity === 0) {
+                  //    await MedicineService.updateMedicine(detail.medicine_id, {
+                  //       ...currentMedicine,
+                  //       quantity: detail.quantity,
+                  //    });
+                  // } else if (currentQuantity > 0) {
+                  //    await MedicineService.updateMedicine(detail.medicine_id, {
+                  //       ...currentMedicine,
+                  //       quantity: currentQuantity + detail.quantity,
+                  //    });
+                  // }
+
+                  await DeliveryNoteDetailsService.create(finalDetail);
+               });
+            } else
+               throw {
+                  message: 'Missing details',
+               };
+
+            emit('sendValue', handleValues);
+            toast({
+               description: 'Đã thêm phiếu xuất mới.',
+               class: 'bg-emerald-600 text-white',
+            });
+            resetForm();
+         } else if (props.action === 'update') {
+            console.log('update');
+            handleValues.delivery_note_id =
+               props.defaultValues?.delivery_note_id;
+            const updatedNote = await DeliveryNoteService.getNote(
+               handleValues.delivery_note_id
+            );
+            const updatedCustomerId = updatedNote.customer_id;
+            // const updatedCustomer =
+            await CustomerService.updateCustomer(updatedCustomerId, {
+               customer_id: updatedCustomerId,
+               name: handleValues.customer_name,
+               address: handleValues.address,
+               phone: handleValues.phone,
+            });
+
+            console.log(updatedNote);
+            console.log(handleValues);
+            await DeliveryNoteService.updateNote(
+               props.defaultValues?.delivery_note_id,
+               handleValues
+            );
+
+            const deliveryNoteDetailsData = JSON.parse(
+               localStorage.getItem('deliveryNoteDetails')
+            );
+
+            console.log(deliveryNoteDetailsData);
+            const updatedNoteId = props.defaultValues?.delivery_note_id;
+            console.log(props.defaultValues);
+
+            console.log(deliveryNoteDetailsData);
+            if (deliveryNoteDetailsData) {
+               deliveryNoteDetailsData.forEach(async (detail, index) => {
+                  const currentMedicine = await MedicineService.getMedicine(
+                     detail.medicine_id
+                  );
+                  const quantityBeforeUpdate =
+                     props.defaultValues.details[index].quantity;
+                  const quantityAfterUpdate = detail.quantity;
+                  console.log(
+                     currentMedicine.quantity,
+                     quantityBeforeUpdate,
+                     quantityAfterUpdate
+                  );
+
+                  await MedicineService.updateMedicine(detail.medicine_id, {
+                     ...currentMedicine,
+                     quantity:
+                        currentMedicine.quantity +
+                        quantityBeforeUpdate -
+                        quantityAfterUpdate,
+                  });
+                  const finalDetail = {
+                     ...detail,
+                     delivery_note_id: updatedNoteId,
+                     price: currentMedicine.price,
+                  };
+
+                  console.log(finalDetail);
+                  console.log('create');
+                  await DeliveryNoteDetailsService.updateNote(
+                     updatedNoteId,
+                     detail.medicine_id,
+                     finalDetail
+                  );
+               });
+            } else
+               throw {
+                  message: 'Missing details',
+               };
+
+            emit('sendValue', handleValues);
+            toast({
+               description: `Cập nhật thông tin phiếu xuất có mã ${updatedNoteId} thành công.`,
+               class: 'bg-emerald-600 text-white',
+            });
+         }
+         console.log(handleValues);
+      } catch (error: any) {
+         if (error.message === 'Missing details') {
+            toast({
+               description: 'Chi tiết phiếu xuất không thể để trống',
+               variant: 'destructive',
+            });
+         } else if (error.message === 'Not enough quantity') {
+            console.log(error);
+            toast({
+               description: 'Số lượng thuốc không đủ',
+               variant: 'destructive',
+            });
+         }
+      }
    });
 
    watch(
       () => props.initNumOfDetailsForm,
+
       () => {
          list.value = Array.from(
             { length: props.initNumOfDetailsForm as number },
@@ -359,15 +601,20 @@
       }
    );
 
+   watch(
+      () => props.defaultValues,
+      () => (defaultValue.value = props.defaultValues)
+   );
+
    onMounted(async () => {
       list.value = Array.from(
          { length: props.initNumOfDetailsForm as number },
          (_, index) => index + 1
       );
-      suppliersSelection.value = await getSuppliersData();
    });
 
    defineExpose({
       onSubmit,
+      resetForm,
    });
 </script>

@@ -39,10 +39,31 @@ export const columns: ColumnDef<DeliveryNote>[] = [
    {
       accessorKey: 'delivery_date',
       header: ({ column }) => {
-         return h(DataTableColumnHeader, { column, title: 'Ngày nhập' });
+         return h(DataTableColumnHeader, { column, title: 'Ngày xuất' });
       },
-      cell: ({ row }) => h('div', { class: '' }, row.getValue('delivery_date')),
+      cell: ({ row }) => {
+         const receivedDate = new Date(row.getValue('delivery_date'));
+         const formattedDate = receivedDate.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+         });
+         return h('div', { class: '' }, formattedDate);
+      },
       sortingFn: sortingFn,
+   },
+   {
+      accessorKey: 'total_price',
+      header: ({ column }) => {
+         return h(DataTableColumnHeader, { column, title: 'Tổng giá' });
+      },
+      cell: ({ row }) => {
+         const formattedPrice = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND',
+         }).format(row.getValue('total_price'));
+         return h('div', { class: '' }, formattedPrice);
+      },
    },
    {
       id: 'actions',

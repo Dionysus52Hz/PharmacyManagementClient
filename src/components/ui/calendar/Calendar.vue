@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<!-- <script lang="ts" setup>
    import { cn } from '@/lib/utils';
    import {
       CalendarRoot,
@@ -84,9 +84,9 @@
          </CalendarGrid>
       </div>
    </CalendarRoot>
-</template>
+</template> -->
 
-<!-- <script setup lang="ts">
+<script setup lang="ts">
    import { useVModel } from '@vueuse/core';
    import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
    import type { Calendar } from 'v-calendar';
@@ -434,4 +434,4 @@
    .vc-time-decimal {
       @apply ml-0.5;
    }
-</style> -->
+</style>

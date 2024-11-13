@@ -65,6 +65,10 @@
                <DeliveryNoteForm
                   ref="deliveryNoteFormRef"
                   :init-num-of-details-form="2"
+                  @send-value="handleDeliveryNoteData"
+                  :disabled-input="true"
+                  :default-values="defaultValuesForForm"
+                  :action="'create'"
                >
                </DeliveryNoteForm>
             </div>
@@ -112,18 +116,17 @@
    import DeliveryNoteForm from '@/components/delivery-notes/DeliveryNoteForm.vue';
    import { DataTable } from '@/components/ui/data-table';
    import { excelToJson } from '@/utils/data';
+   import DeliveryNoteService from '@/services/DeliveryNoteService';
+   import { getCurrentLogin } from '@/utils/currentLogin';
 
    const data = ref<DeliveryNote[]>([]);
-
-   async function getData(): Promise<DeliveryNote[]> {
-      return await excelToJson(excelURL, 'DeliveryNotes');
-   }
-
-   const excelURL = 'src/Database.xlsx';
-   onMounted(async () => {
-      data.value = await getData();
-      console.log(data.value);
-   });
+   const getAllNotes = async () => {
+      try {
+         data.value = await DeliveryNoteService.getAllNotes();
+      } catch (error) {
+         console.log(error);
+      }
+   };
 
    import {
       Select,
@@ -149,16 +152,46 @@
       },
    ];
 
+   const currentEmployee = getCurrentLogin();
+   const defaultValuesForForm: DeliveryNote = {
+      delivery_note_id: '',
+      employee_id: currentEmployee.employee_id,
+      customer_id: '',
+      delivery_date: '',
+      details: [],
+   };
+
    const filteredColumn = ref<string>(DeliveryNotesFiltersColumn[0].value);
    const deliveryNoteFormRef = ref<InstanceType<
       typeof DeliveryNoteForm
    > | null>(null);
 
-   const addDeliveryNote = () => {
+   const deliveryNoteData = ref<DeliveryNote>({
+      delivery_note_id: '',
+      employee_id: '',
+      customer_id: '',
+      delivery_date: '',
+      details: [],
+   });
+   const handleDeliveryNoteData = (data: DeliveryNote) => {
+      deliveryNoteData.value = data;
+      console.log(localStorage.getItem('deliveryNoteDetails'));
+   };
+
+   const addDeliveryNote = async () => {
       if (deliveryNoteFormRef.value) {
-         deliveryNoteFormRef.value.onSubmit();
+         try {
+            await deliveryNoteFormRef.value.onSubmit();
+         } catch (error: any) {
+            console.log(error);
+         }
       }
    };
+
+   onMounted(async () => {
+      // await getPrices();
+      await getAllNotes();
+   });
 </script>
 
 <style scoped></style>

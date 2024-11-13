@@ -48,6 +48,7 @@
          :class="{
             'max-w-[90dvw] min-h-[90dvh]':
                actionState === 'show-details' || actionState === 'update',
+            'h-auto max-w-[90dvw]': actionState == 'show-details',
          }"
       >
          <DialogHeader class="p-6 pb-0">
@@ -85,7 +86,7 @@
                      "
                   >
                      <Pencil class="w-5 h-5 mr-2" />
-                     Sửa phiếu nhập
+                     Sửa phiếu
                   </Button>
                </template>
             </DataTable>
@@ -99,6 +100,8 @@
                   ref="receivedNoteFormRef"
                   :init-num-of-details-form="initNumOfDetailsForm"
                   :default-values="receivedNoteDetailsData"
+                  :action="'update'"
+                  :disabled-input="true"
                >
                </ReceivedNoteForm>
             </div>
@@ -129,15 +132,18 @@
             >
                Quay lại
             </Button>
-            <Button
-               v-if="actionState === 'delete'"
-               @click="deleteReceivedNote(props.row.original.received_note_id)"
-               class="w-full"
-               variant="destructive"
-            >
-               Xoá
-            </Button>
+
             <DialogClose as-child>
+               <Button
+                  v-if="actionState === 'delete'"
+                  @click="
+                     deleteReceivedNote(props.row.original.received_note_id)
+                  "
+                  class="w-full"
+                  variant="destructive"
+               >
+                  Xoá
+               </Button>
                <Button
                   v-if="actionState === 'delete'"
                   class="w-full"
@@ -186,14 +192,15 @@
    import { onMounted, computed, ref } from 'vue';
    import { excelToJson } from '@/utils/data';
    import { vAutoAnimate } from '@formkit/auto-animate/vue';
+   import ReceivedNoteDetailsService from '@/services/ReceivedNoteDetailsService';
+   import MedicineService from '@/services/MedicineService';
+   import ReceivedNoteService from '@/services/ReceivedNoteService';
+   import { useToast } from '@/components/ui/toast/use-toast';
+   import Medicine from '@/views/Medicine.vue';
+   const { toast } = useToast();
 
    const data = ref<ReceivedNoteDetails[]>([]);
 
-   async function getData(): Promise<ReceivedNoteDetails[]> {
-      return await excelToJson(excelURL, 'ReceivedNoteDetails');
-   }
-
-   const excelURL = 'src/Database.xlsx';
    const receivedNoteFormRef = ref<InstanceType<
       typeof ReceivedNoteForm
    > | null>(null);
@@ -217,17 +224,23 @@
       receivedNoteDetailsData.value = {
          ...props.row.original,
       };
-      receivedNoteDetailsData.value.details = (await getData()).filter(
-         (note) => note.received_note_id === props.row.original.received_note_id
-      );
-      initNumOfDetailsForm.value = receivedNoteDetailsData.value.details.length;
-      console.log(initNumOfDetailsForm.value);
+      receivedNoteDetailsData.value.details = (
+         await ReceivedNoteDetailsService.getNote(
+            props.row.original.received_note_id
+         )
+      ).details;
       console.log(receivedNoteDetailsData.value);
+      initNumOfDetailsForm.value = receivedNoteDetailsData.value.details.length;
    };
 
    const showReceivedNoteDetails = async (id: string) => {
-      data.value = (await getData()).filter(
-         (note) => note.received_note_id === id
+      data.value = (await ReceivedNoteDetailsService.getNote(id)).details;
+      console.log(data.value);
+      data.value.map(
+         async (item) =>
+            (item.medicine_name = await MedicineService.getMedicine(
+               item.medicine_id
+            ))
       );
    };
 
@@ -247,17 +260,50 @@
       }
    });
 
-   onMounted(async () => {
-      data.value = await getData();
-   });
-
    const updateReceivedNotes = async () => {
       if (receivedNoteFormRef.value) {
          await receivedNoteFormRef.value.onSubmit();
       }
    };
 
-   const deleteReceivedNote = (receivedNoteId: string) => {
-      console.log(receivedNoteId);
+   const deleteReceivedNote = async (receivedNoteId: string) => {
+      try {
+         const noteDetails = (
+            await ReceivedNoteDetailsService.getNote(receivedNoteId)
+         ).details;
+         if (noteDetails) {
+            noteDetails.forEach(async (detail) => {
+               const medicineDeleted = await MedicineService.getMedicine(
+                  detail.medicine_id
+               );
+               const medicineQuantity = medicineDeleted.quantity;
+
+               await MedicineService.updateMedicine(
+                  medicineDeleted.medicine_id,
+                  {
+                     ...medicineDeleted,
+                     quantity: medicineQuantity - detail.quantity,
+                  }
+               );
+               await ReceivedNoteDetailsService.deleteNote(
+                  receivedNoteId,
+                  detail.medicine_id
+               );
+            });
+         }
+
+         await ReceivedNoteService.deleteNote(receivedNoteId);
+         // console.log(noteDetails);
+         toast({
+            description: 'Xoá phiếu nhập thành công.',
+            class: 'bg-emerald-600 text-white',
+         });
+      } catch (error) {
+         console.log(error);
+         toast({
+            description: 'Xảy ra lỗi không xác định',
+            variant: 'destructive',
+         });
+      }
    };
 </script>
