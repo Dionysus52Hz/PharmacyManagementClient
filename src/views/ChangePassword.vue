@@ -1,6 +1,6 @@
 <template>
     <section class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center m-16">
-        <div class="w-full max-w-md p-6 bg-white rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
+        <div class="w-full max-w-md p-6 my-10 bg-white rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
             <h1 class="text-xl font-bold text-gray-900 md:text-2xl dark:text-white text-center">Đổi mật khẩu</h1>
             <form class="mt-6 space-y-6" @submit.prevent="changePassword">
                 <div>
